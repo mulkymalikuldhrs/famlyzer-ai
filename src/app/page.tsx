@@ -56,9 +56,9 @@ function AppContent() {
 
   useEffect(() => {
     if (!hydrated) return
-    const { workspaces } = useAppStore.getState()
+    const workspaces = useAppStore.getState().workspaces
     if (workspaces.length > 0) localStorage.setItem('famlyzer_workspaces', JSON.stringify(workspaces))
-  }, [useAppStore.getState().workspaces, hydrated])
+  }, [hydrated])
 
   if (!hydrated) {
     return (

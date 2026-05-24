@@ -18,7 +18,7 @@ export const metadata: Metadata = {
   description: "AI-powered system for managing time, money, energy, relationships, and life goals in one unified platform.",
   keywords: ["Famlyzer", "AI", "Planning", "Finance", "Family", "Autonomous", "Decision Intelligence"],
   icons: {
-    icon: "https://z-cdn.chatglm.cn/z-ai/static/logo.svg",
+    icon: "/logo.svg",
   },
 };
 
