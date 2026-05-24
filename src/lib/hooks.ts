@@ -623,7 +623,7 @@ export function useAiAuditFinances() {
 export function useAiAgentRun() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: async (data: { workspaceId: string; agentType: string }) => {
+    mutationFn: async (data: { workspaceId: string; agentType: string; input?: string }) => {
       const res = await fetch('/api/ai/agent-run', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

@@ -246,7 +246,7 @@ export function Vault() {
       {/* Document Grid */}
       {filteredDocs.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-          {filteredDocs.map((doc: { id: string; title: string; type: string; content: string; priority: string; scope: string; tags: string | null; createdAt: string }, i: number) => {
+          {filteredDocs.map((doc: { id: string; title: string; type: string; content: string; priority: string; scope: string; visibility?: string | null; tags: string | null; createdAt: string }, i: number) => {
             const IconComp = typeIcons[doc.type] || FileText
             return (
               <motion.div
@@ -257,7 +257,7 @@ export function Vault() {
               >
                 <Card
                   className={`border-l-4 ${priorityColors[doc.priority] || 'border-l-gray-300'} hover:shadow-md transition-shadow cursor-pointer`}
-                  onClick={() => setDetailDoc(doc)}
+                  onClick={() => setDetailDoc({ ...doc, visibility: doc.visibility ?? null })}
                 >
                   <CardContent className="p-4">
                     <div className="flex items-start gap-3">

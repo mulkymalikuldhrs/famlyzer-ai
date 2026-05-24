@@ -85,7 +85,7 @@ Return ONLY the JSON array, no other text.`
       { role: 'user', content: suggestPrompt },
     ])
 
-    let suggestions = []
+    let suggestions: Array<{ title?: string; reason?: string; consequence?: string; actionData?: unknown }> = []
     try {
       const jsonMatch = rawResponse.match(/\[[\s\S]*\]/)
       if (jsonMatch) {

@@ -138,7 +138,7 @@ export function Planner() {
   ]
 
   const getWeekDays = () => {
-    const days = []
+    const days: Date[] = []
     const now = new Date()
     const startOfWeek = new Date(now)
     startOfWeek.setDate(now.getDate() - now.getDay())
@@ -287,7 +287,7 @@ export function Planner() {
                 <div className="space-y-2">
                   {tasks
                     .filter((t: { status: string }) => t.status === group.status)
-                    .map((task: { id: string; title: string; priority: string; timeCost: number; energyCost: number; moneyCost: number; aiRejected: boolean; aiRejectionReason?: string; assignedTo?: string }, i: number) => (
+                    .map((task: { id: string; title: string; priority: string; status: string; timeCost: number; energyCost: number; moneyCost: number; aiRejected: boolean; aiRejectionReason?: string; assignedTo?: string }, i: number) => (
                       <motion.div
                         key={task.id}
                         initial={{ opacity: 0, y: 10 }}

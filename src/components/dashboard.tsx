@@ -73,7 +73,7 @@ export function Dashboard() {
   const emergencyBalance = useMemo(() => accounts.filter((a: { isEmergency: boolean }) => a.isEmergency).reduce((s: number, a: { balance: number }) => s + a.balance, 0), [accounts])
 
   const cashflowData = useMemo(() => {
-    const months = []
+    const months: Array<{ month: string; income: number; expenses: number }> = []
     for (let i = 5; i >= 0; i--) {
       const d = new Date()
       d.setMonth(d.getMonth() - i)
