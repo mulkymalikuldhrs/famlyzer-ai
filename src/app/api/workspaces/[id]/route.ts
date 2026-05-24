@@ -1,44 +1,34 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth'
 import { db } from '@/lib/db'
+import { updateWorkspaceSchema } from '@/lib/validations'
+import { checkRateLimit, RATE_LIMITS } from '@/lib/rate-limit'
 
 export async function GET(
   _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = await params
+    const session = await getServerSession(authOptions)
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
 
+    const { id } = await params
     const workspace = await db.workspace.findUnique({
       where: { id },
-      include: {
-        members: {
-          include: {
-            user: {
-              select: { id: true, email: true, name: true, avatar: true },
-            },
-          },
-        },
-        _count: {
-          select: {
-            tasks: true,
-            accounts: true,
-            transactions: true,
-            vaultDocuments: true,
-            memories: true,
-            suggestions: true,
-          },
-        },
-      },
+      include: { members: true },
     })
 
     if (!workspace) {
       return NextResponse.json({ error: 'Workspace not found' }, { status: 404 })
     }
 
-    return NextResponse.json({ workspace })
+    return NextResponse.json(workspace)
   } catch (error) {
-    console.error('Get workspace error:', error)
-    return NextResponse.json({ error: 'Failed to get workspace' }, { status: 500 })
+    console.error('Fetch workspace error:', error)
+    return NextResponse.json({ error: 'Failed to fetch workspace' }, { status: 500 })
   }
 }
 
@@ -47,26 +37,54 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const session = await getServerSession(authOptions)
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const rateLimit = checkRateLimit(session.user.id, RATE_LIMITS.API_WRITE)
+    if (!rateLimit.allowed) {
+      return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 })
+    }
+
     const { id } = await params
     const body = await request.json()
-    const { name, type, autonomousLevel } = body
+    const validated = updateWorkspaceSchema.parse(body)
 
-    const existing = await db.workspace.findUnique({ where: { id } })
-    if (!existing) {
-      return NextResponse.json({ error: 'Workspace not found' }, { status: 404 })
+    // Verify the user is owner/admin of this workspace
+    const membership = await db.workspaceMember.findUnique({
+      where: { workspaceId_userId: { workspaceId: id, userId: session.user.id } },
+    })
+
+    if (!membership || (membership.role !== 'owner' && membership.role !== 'admin')) {
+      return NextResponse.json({ error: 'Only owners and admins can update workspace settings' }, { status: 403 })
+    }
+
+    // Warning for autonomous level changes
+    if (validated.autonomousLevel !== undefined && validated.autonomousLevel >= 2) {
+      // The client should show a confirmation dialog before this call
+      // Log the level change for audit trail
+      await db.agentLog.create({
+        data: {
+          workspaceId: id,
+          agentType: 'executive',
+          action: 'autonomous_level_change',
+          result: `Level changed to ${validated.autonomousLevel}`,
+          reasoning: `Changed by user ${session.user.id}`,
+        },
+      })
     }
 
     const workspace = await db.workspace.update({
       where: { id },
-      data: {
-        ...(name !== undefined && { name }),
-        ...(type !== undefined && { type }),
-        ...(autonomousLevel !== undefined && { autonomousLevel }),
-      },
+      data: validated,
     })
 
-    return NextResponse.json({ workspace })
-  } catch (error) {
+    return NextResponse.json(workspace)
+  } catch (error: unknown) {
+    if (error instanceof Error && error.name === 'ZodError') {
+      return NextResponse.json({ error: 'Validation failed', details: error }, { status: 400 })
+    }
     console.error('Update workspace error:', error)
     return NextResponse.json({ error: 'Failed to update workspace' }, { status: 500 })
   }

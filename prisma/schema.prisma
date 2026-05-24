@@ -3,203 +3,419 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+// ── Enums ──
+enum WorkspaceType {
+  personal
+  family
+  company
+}
+
+enum AutonomousLevel {
+  observe          // 0
+  suggest          // 1
+  act_with_confirm // 2
+  full_autonomous  // 3
+}
+
+enum MemberRole {
+  owner
+  admin
+  member
+}
+
+enum TaskPriority {
+  low
+  medium
+  high
+  critical
+}
+
+enum TaskStatus {
+  pending
+  approved
+  rejected
+  done
+}
+
+enum AccountType {
+  checking
+  savings
+  investment
+  cash
+  credit
+}
+
+enum TransactionCategory {
+  food
+  transport
+  housing
+  health
+  education
+  entertainment
+  salary
+  investment_return
+  transfer
+  other
+}
+
+enum TransactionType {
+  income
+  expense
+  transfer
+}
+
+enum BudgetPeriod {
+  weekly
+  monthly
+  yearly
+}
+
+enum BudgetPriority {
+  low
+  medium
+  high
+  sacred
+}
+
+enum GoalPriority {
+  low
+  medium
+  high
+  critical
+}
+
+enum VaultDocType {
+  note
+  pdf
+  image
+  audio
+  contract
+  rule
+}
+
+enum VaultPriority {
+  low
+  medium
+  high
+}
+
+enum VaultScope {
+  workspace
+  family
+  personal
+}
+
+enum MemoryLayer {
+  short_term
+  long_term
+  decision
+  emotional
+}
+
+enum SuggestionType {
+  preventive
+  corrective
+  strategic
+  behavioral
+}
+
+enum SuggestionStatus {
+  pending
+  accepted
+  simulated
+  ignored
+}
+
+enum AgentType {
+  planner
+  finance
+  mediator
+  health
+  education
+  memory
+  executive
+}
+
+enum SubscriptionTier {
+  free
+  professional
+  business
+}
+
+enum SubscriptionStatus {
+  active
+  cancelled
+  expired
+  past_due
+  trialing
+}
+
+enum SubscriptionPeriod {
+  monthly
+  yearly
+}
+
+// ── Models ──
 
 model User {
   id            String    @id @default(cuid())
   email         String    @unique
   name          String?
   avatar        String?
+  passwordHash  String?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   workspaces    WorkspaceMember[]
   subscriptions Subscription[]
+
+  @@index([email])
 }
 
 model Workspace {
-  id              String   @id @default(cuid())
-  name            String
-  type            String   @default("personal") // personal, family, company
-  autonomousLevel Int      @default(1) // 0=observe, 1=suggest, 2=act_with_confirm, 3=full_autonomous
-  trialStart      DateTime?
-  trialEnd        DateTime?
-  subscriptionTier String   @default("free") // free, professional, business
-  isActive        Boolean  @default(true)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  members         WorkspaceMember[]
-  tasks           Task[]
-  accounts        FinanceAccount[]
-  transactions    Transaction[]
-  budgetRules     BudgetRule[]
-  financialGoals  FinancialGoal[]
-  vaultDocuments  VaultDocument[]
-  memories        Memory[]
-  suggestions     Suggestion[]
-  agentLogs       AgentLog[]
+  id               String           @id @default(cuid())
+  name             String
+  type             WorkspaceType    @default(personal)
+  autonomousLevel  Int              @default(1) // 0=observe, 1=suggest, 2=act_with_confirm, 3=full_autonomous
+  trialStart       DateTime?
+  trialEnd         DateTime?
+  subscriptionTier SubscriptionTier @default(free)
+  stripeCustomerId String?          @unique
+  isActive         Boolean          @default(true)
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+  members          WorkspaceMember[]
+  tasks            Task[]
+  accounts         FinanceAccount[]
+  transactions     Transaction[]
+  budgetRules      BudgetRule[]
+  financialGoals   FinancialGoal[]
+  vaultDocuments   VaultDocument[]
+  memories         Memory[]
+  suggestions      Suggestion[]
+  agentLogs        AgentLog[]
+
+  @@index([subscriptionTier])
+  @@index([isActive])
 }
 
 model WorkspaceMember {
-  id              String   @id @default(cuid())
+  id              String    @id @default(cuid())
   workspaceId     String
   userId          String
-  alias           String?  // Ayah, Ibu, Anak, Manager
-  authorityLevel  Int      @default(1) // 1-5
-  energyLevel     Int      @default(70) // 0-100
-  stressLevel     Int      @default(30) // 0-100
-  constraints     String?  // JSON string for constraints
-  preferences     String?  // JSON string for preferences
-  visibilityScope String?  // JSON string for visibility
-  role            String   @default("member") // owner, admin, member
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  alias           String?   // Ayah, Ibu, Anak, Manager
+  authorityLevel  Int       @default(1) // 1-5
+  energyLevel     Int       @default(70) // 0-100
+  stressLevel     Int       @default(30) // 0-100
+  constraints     Json?     // JSON object for constraints
+  preferences     Json?     // JSON object for preferences
+  visibilityScope Json?     // JSON object for visibility
+  role            MemberRole @default(member)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
   workspace       Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  assignedTasks   Task[]
 
   @@unique([workspaceId, userId])
+  @@index([workspaceId])
+  @@index([userId])
+  @@index([role])
 }
 
 model Task {
-  id           String   @id @default(cuid())
-  workspaceId  String
-  title        String
-  description  String?
-  timeCost     Int      @default(0) // minutes
-  energyCost   Int      @default(0) // 0-100
-  moneyCost    Float    @default(0)
-  priority     String   @default("medium") // low, medium, high, critical
-  status       String   @default("pending") // pending, approved, rejected, done
-  assignedTo   String?  // Member ID
-  dependencies String?  // JSON array of task IDs
-  dueDate      DateTime?
-  completedAt  DateTime?
-  aiRejected   Boolean  @default(false)
+  id                String     @id @default(cuid())
+  workspaceId       String
+  title             String
+  description       String?
+  timeCost          Int        @default(0) // minutes
+  energyCost        Int        @default(0) // 0-100
+  moneyCost         Decimal    @default(0) @db.Decimal(12, 2)
+  priority          TaskPriority @default(medium)
+  status            TaskStatus @default(pending)
+  assignedToId      String?    // WorkspaceMember ID
+  dependencies      Json?      // JSON array of task IDs
+  dueDate           DateTime?
+  completedAt       DateTime?
+  aiRejected        Boolean    @default(false)
   aiRejectionReason String?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-  workspace    Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
+  workspace         Workspace  @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  assignedTo        WorkspaceMember? @relation(fields: [assignedToId], references: [id], onDelete: SetNull)
+
+  @@index([workspaceId])
+  @@index([status])
+  @@index([priority])
+  @@index([assignedToId])
+  @@index([dueDate])
 }
 
 model FinanceAccount {
-  id          String   @id @default(cuid())
+  id          String     @id @default(cuid())
   workspaceId String
   name        String
-  type        String   @default("checking") // checking, savings, investment, cash, credit
-  balance     Float    @default(0)
-  currency    String   @default("USD")
-  isEmergency Boolean  @default(false)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  type        AccountType @default(checking)
+  balance     Decimal    @default(0) @db.Decimal(14, 2)
+  currency    String     @default("USD") @db.Char(3)
+  isEmergency Boolean    @default(false)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  workspace   Workspace  @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  transactions Transaction[]
+
+  @@index([workspaceId])
+  @@index([type])
 }
 
 model Transaction {
-  id          String   @id @default(cuid())
+  id          String             @id @default(cuid())
   workspaceId String
   accountId   String?
-  amount      Float
-  category    String   @default("other") // food, transport, housing, health, education, entertainment, other
-  type        String   @default("expense") // income, expense, transfer
+  amount      Decimal            @db.Decimal(14, 2)
+  category    TransactionCategory @default(other)
+  type        TransactionType    @default(expense)
   description String?
-  date        DateTime @default(now())
-  isRecurring Boolean  @default(false)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  date        DateTime           @default(now())
+  isRecurring Boolean            @default(false)
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+  workspace   Workspace          @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  account     FinanceAccount?    @relation(fields: [accountId], references: [id], onDelete: SetNull)
+
+  @@index([workspaceId])
+  @@index([accountId])
+  @@index([category])
+  @@index([type])
+  @@index([date])
 }
 
 model BudgetRule {
-  id          String   @id @default(cuid())
+  id          String         @id @default(cuid())
   workspaceId String
   category    String
-  limitAmount Float
-  period      String   @default("monthly") // weekly, monthly, yearly
-  priority    String   @default("medium") // low, medium, high, sacred
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  limitAmount Decimal        @db.Decimal(12, 2)
+  period      BudgetPeriod   @default(monthly)
+  priority    BudgetPriority @default(medium)
+  isActive    Boolean        @default(true)
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  workspace   Workspace      @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId])
+  @@index([category])
+  @@index([isActive])
 }
 
 model FinancialGoal {
-  id          String   @id @default(cuid())
-  workspaceId String
-  name        String
-  targetAmount Float
-  currentAmount Float @default(0)
-  deadline    DateTime?
-  priority    String   @default("medium")
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  id            String       @id @default(cuid())
+  workspaceId   String
+  name          String
+  targetAmount  Decimal      @db.Decimal(14, 2)
+  currentAmount Decimal      @default(0) @db.Decimal(14, 2)
+  deadline      DateTime?
+  priority      GoalPriority @default(medium)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  workspace     Workspace    @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId])
+  @@index([priority])
 }
 
 model VaultDocument {
-  id          String   @id @default(cuid())
+  id          String       @id @default(cuid())
   workspaceId String
   title       String
-  type        String   @default("note") // note, pdf, image, audio, contract, rule
-  content     String?  // text content or file reference
-  priority    String   @default("medium") // low, medium, high
-  scope       String   @default("workspace") // workspace, family, personal
-  visibility  String?  // JSON array of member aliases
-  tags        String?  // JSON array of tags
-  metadata    String?  // JSON for extra metadata
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  type        VaultDocType @default(note)
+  content     String?      @db.Text
+  priority    VaultPriority @default(medium)
+  scope       VaultScope   @default(workspace)
+  visibility  Json?        // JSON array of member aliases
+  tags        Json?        // JSON array of tags
+  metadata    Json?        // JSON for extra metadata
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  workspace   Workspace    @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId])
+  @@index([type])
+  @@index([scope])
 }
 
 model Memory {
-  id          String   @id @default(cuid())
+  id          String      @id @default(cuid())
   workspaceId String
-  layer       String   @default("short_term") // short_term, long_term, decision, emotional
+  layer       MemoryLayer @default(short_term)
   category    String?
-  content     String
-  importance  Int      @default(5) // 1-10
+  content     String      @db.Text
+  importance  Int         @default(5) // 1-10
   expiresAt   DateTime?
-  createdAt   DateTime @default(now())
-  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  workspace   Workspace   @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId])
+  @@index([layer])
+  @@index([importance])
+  @@index([expiresAt])
 }
 
 model Suggestion {
-  id          String   @id @default(cuid())
+  id          String          @id @default(cuid())
   workspaceId String
-  type        String   @default("preventive") // preventive, corrective, strategic, behavioral
-  agentSource String   // which agent created this
+  type        SuggestionType  @default(preventive)
+  agentSource AgentType
   title       String
-  reason      String
-  consequence String?
-  status      String   @default("pending") // pending, accepted, simulated, ignored
-  actionData  String?  // JSON for action details
-  createdAt   DateTime @default(now())
-  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  reason      String          @db.Text
+  consequence String?         @db.Text
+  status      SuggestionStatus @default(pending)
+  actionData  Json?
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  workspace   Workspace       @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId])
+  @@index([status])
+  @@index([agentSource])
 }
 
 model AgentLog {
-  id          String   @id @default(cuid())
-  workspaceId String
-  agentType   String   // planner, finance, mediator, health, education, memory, executive
-  action      String
-  result      String?
-  reasoning   String?
+  id              String    @id @default(cuid())
+  workspaceId     String
+  agentType       AgentType
+  action          String
+  result          String?   @db.Text
+  reasoning       String?   @db.Text
   autonomousLevel Int?
-  createdAt   DateTime @default(now())
-  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  createdAt       DateTime  @default(now())
+  workspace       Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId])
+  @@index([agentType])
+  @@index([createdAt])
 }
 
 model Subscription {
-  id          String   @id @default(cuid())
-  userId      String
-  tier        String   @default("free") // free, professional, business
-  status      String   @default("active") // active, cancelled, expired
-  startDate   DateTime @default(now())
-  endDate     DateTime?
-  price       Float    @default(0)
-  period      String   @default("monthly") // monthly, yearly
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id              String             @id @default(cuid())
+  userId          String
+  tier            SubscriptionTier   @default(free)
+  status          SubscriptionStatus @default(active)
+  startDate       DateTime           @default(now())
+  endDate         DateTime?
+  price           Decimal            @default(0) @db.Decimal(10, 2)
+  period          SubscriptionPeriod @default(monthly)
+  stripeSessionId String?            @unique
+  stripeSubId     String?            @unique
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+  user            User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([status])
+  @@index([stripeSessionId])
+  @@index([stripeSubId])
 }

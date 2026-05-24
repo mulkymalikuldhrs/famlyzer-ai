@@ -2,18 +2,22 @@
 
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Brain, Sparkles, Users, Shield, ArrowRight, CheckCircle2 } from 'lucide-react'
+import { Brain, Sparkles, Users, Shield, ArrowRight, CheckCircle2, Eye, EyeOff } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent } from '@/components/ui/card'
 import { useAppStore } from '@/lib/store'
 import { useAuth, useCreateWorkspace } from '@/lib/hooks'
 import { toast } from 'sonner'
+import { signIn } from 'next-auth/react'
 
 export function Onboarding() {
   const [step, setStep] = useState(0)
+  const [isLogin, setIsLogin] = useState(false)
   const [email, setEmail] = useState('')
   const [name, setName] = useState('')
+  const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const [wsName, setWsName] = useState('')
   const [wsType, setWsType] = useState('personal')
 
@@ -26,9 +30,32 @@ export function Onboarding() {
       toast.error('Please enter your email')
       return
     }
+    if (!password || password.length < 8) {
+      toast.error('Password must be at least 8 characters')
+      return
+    }
+    // Basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(email.trim())) {
+      toast.error('Please enter a valid email address')
+      return
+    }
+
     try {
-      const result = await authMutation.mutateAsync({ email: email.trim(), name: name.trim() || undefined })
+      const result = await authMutation.mutateAsync({
+        email: email.trim(),
+        name: name.trim() || undefined,
+        password,
+      })
       setUser(result.user)
+
+      // Sign in with NextAuth to establish session
+      await signIn('credentials', {
+        email: email.trim(),
+        password,
+        redirect: false,
+      })
+
       if (result.workspaces && result.workspaces.length > 0) {
         setWorkspaces(result.workspaces)
         setWorkspace(result.workspaces[0])
@@ -36,7 +63,7 @@ export function Onboarding() {
       }
       setStep(2)
     } catch {
-      toast.error('Failed to setup account')
+      toast.error('Failed to setup account. Please check your credentials.')
     }
   }
 
@@ -53,8 +80,8 @@ export function Onboarding() {
         type: wsType,
         userId: user.id,
       })
-      setWorkspace(result.workspace)
-      setWorkspaces([result.workspace])
+      setWorkspace(result)
+      setWorkspaces([result])
       setStep(3)
     } catch {
       toast.error('Failed to create workspace')
@@ -142,8 +169,8 @@ export function Onboarding() {
               <Card className="border-0 shadow-xl">
                 <CardContent className="p-8">
                   <div className="text-center mb-6">
-                    <h2 className="text-2xl font-bold">Create Your Account</h2>
-                    <p className="text-muted-foreground mt-1">Start your autonomous planning journey</p>
+                    <h2 className="text-2xl font-bold">{isLogin ? 'Welcome Back' : 'Create Your Account'}</h2>
+                    <p className="text-muted-foreground mt-1">{isLogin ? 'Sign in to your workspace' : 'Start your autonomous planning journey'}</p>
                   </div>
 
                   <div className="space-y-4">
@@ -156,17 +183,42 @@ export function Onboarding() {
                         onChange={(e) => setEmail(e.target.value)}
                         className="h-11"
                         onKeyDown={(e) => e.key === 'Enter' && handleAuth()}
+                        autoComplete="email"
                       />
                     </div>
+                    {!isLogin && (
+                      <div>
+                        <label className="text-sm font-medium mb-1.5 block">Name (optional)</label>
+                        <Input
+                          placeholder="Your name"
+                          value={name}
+                          onChange={(e) => setName(e.target.value)}
+                          className="h-11"
+                          onKeyDown={(e) => e.key === 'Enter' && handleAuth()}
+                          autoComplete="name"
+                        />
+                      </div>
+                    )}
                     <div>
-                      <label className="text-sm font-medium mb-1.5 block">Name (optional)</label>
-                      <Input
-                        placeholder="Your name"
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                        className="h-11"
-                        onKeyDown={(e) => e.key === 'Enter' && handleAuth()}
-                      />
+                      <label className="text-sm font-medium mb-1.5 block">Password</label>
+                      <div className="relative">
+                        <Input
+                          type={showPassword ? 'text' : 'password'}
+                          placeholder={isLogin ? 'Enter your password' : 'At least 8 characters'}
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
+                          className="h-11 pr-10"
+                          onKeyDown={(e) => e.key === 'Enter' && handleAuth()}
+                          autoComplete={isLogin ? 'current-password' : 'new-password'}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword(!showPassword)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                        >
+                          {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        </button>
+                      </div>
                     </div>
                   </div>
 
@@ -175,12 +227,19 @@ export function Onboarding() {
                     className="w-full bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white h-11 mt-6"
                     disabled={authMutation.isPending}
                   >
-                    {authMutation.isPending ? 'Setting up...' : 'Continue'} <ArrowRight className="ml-2 w-4 h-4" />
+                    {authMutation.isPending ? 'Setting up...' : isLogin ? 'Sign In' : 'Create Account'} <ArrowRight className="ml-2 w-4 h-4" />
                   </Button>
 
                   <button
+                    onClick={() => setIsLogin(!isLogin)}
+                    className="w-full text-center text-sm text-emerald-600 hover:text-emerald-700 mt-3"
+                  >
+                    {isLogin ? "Don't have an account? Create one" : 'Already have an account? Sign in'}
+                  </button>
+
+                  <button
                     onClick={() => setStep(0)}
-                    className="w-full text-center text-sm text-muted-foreground hover:text-foreground mt-4"
+                    className="w-full text-center text-sm text-muted-foreground hover:text-foreground mt-2"
                   >
                     ← Back
                   </button>

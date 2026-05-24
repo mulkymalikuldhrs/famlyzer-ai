@@ -71,8 +71,5 @@ worklog.md
 test_brackets/
 test2/
 
-# Prisma
-prisma/migrations/
-
 # Caddy (not needed for Next.js)
 Caddyfile

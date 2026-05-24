@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth'
 import { db } from '@/lib/db'
 
 export async function GET(
@@ -6,21 +8,28 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id: workspaceId } = await params
-    const agentType = request.nextUrl.searchParams.get('agentType')
+    const session = await getServerSession(authOptions)
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
 
-    const where: Record<string, unknown> = { workspaceId }
+    const { id } = await params
+    const { searchParams } = new URL(request.url)
+    const agentType = searchParams.get('agentType')
+    const limit = Math.min(parseInt(searchParams.get('limit') || '50'), 100)
+
+    const where: Record<string, unknown> = { workspaceId: id }
     if (agentType) where.agentType = agentType
 
     const logs = await db.agentLog.findMany({
       where,
       orderBy: { createdAt: 'desc' },
-      take: 50,
+      take: limit,
     })
 
-    return NextResponse.json({ logs })
+    return NextResponse.json(logs)
   } catch (error) {
-    console.error('List agent logs error:', error)
-    return NextResponse.json({ error: 'Failed to list agent logs' }, { status: 500 })
+    console.error('Fetch agent logs error:', error)
+    return NextResponse.json({ error: 'Failed to fetch agent logs' }, { status: 500 })
   }
 }

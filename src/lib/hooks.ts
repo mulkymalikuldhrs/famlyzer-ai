@@ -5,41 +5,42 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 // ── Auth ──
 export function useAuth() {
   return useMutation({
-    mutationFn: async (data: { email: string; name?: string }) => {
+    mutationFn: async (data: { email: string; name?: string; password: string }) => {
       const res = await fetch('/api/auth/setup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
       })
-      if (!res.ok) throw new Error('Auth setup failed')
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({ error: 'Auth failed' }))
+        throw new Error(errorData.error || 'Auth setup failed')
+      }
       return res.json()
     },
   })
 }
 
 // ── User ──
-export function useUser(email: string | null) {
+export function useCurrentUser() {
   return useQuery({
-    queryKey: ['user', email],
+    queryKey: ['user', 'me'],
     queryFn: async () => {
-      const res = await fetch(`/api/user?email=${encodeURIComponent(email!)}`)
+      const res = await fetch('/api/user')
       if (!res.ok) throw new Error('Failed to fetch user')
       return res.json()
     },
-    enabled: !!email,
   })
 }
 
 // ── Workspaces ──
-export function useWorkspaces(userId: string | null) {
+export function useWorkspaces() {
   return useQuery({
-    queryKey: ['workspaces', userId],
+    queryKey: ['workspaces'],
     queryFn: async () => {
-      const res = await fetch(`/api/workspaces?userId=${userId}`)
+      const res = await fetch('/api/workspaces')
       if (!res.ok) throw new Error('Failed to fetch workspaces')
       return res.json()
     },
-    enabled: !!userId,
   })
 }
 
@@ -499,15 +500,14 @@ export function useAgentLogs(workspaceId: string | null, agentType?: string) {
 }
 
 // ── Subscriptions ──
-export function useSubscriptions(userId: string | null) {
+export function useSubscriptions() {
   return useQuery({
-    queryKey: ['subscriptions', userId],
+    queryKey: ['subscriptions'],
     queryFn: async () => {
-      const res = await fetch(`/api/subscriptions?userId=${userId}`)
+      const res = await fetch('/api/subscriptions')
       if (!res.ok) throw new Error('Failed to fetch subscriptions')
       return res.json()
     },
-    enabled: !!userId,
   })
 }
 

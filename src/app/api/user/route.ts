@@ -1,21 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth'
 import { db } from '@/lib/db'
 
 export async function GET(request: NextRequest) {
   try {
-    const email = request.nextUrl.searchParams.get('email')
-
-    if (!email) {
-      return NextResponse.json({ error: 'Email query parameter is required' }, { status: 400 })
+    const session = await getServerSession(authOptions)
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     const user = await db.user.findUnique({
-      where: { email },
+      where: { id: session.user.id },
       include: {
         workspaces: {
-          include: {
-            workspace: true,
-          },
+          include: { workspace: true },
         },
       },
     })
@@ -25,15 +24,15 @@ export async function GET(request: NextRequest) {
     }
 
     return NextResponse.json({
-      user,
+      user: { id: user.id, email: user.email, name: user.name, avatar: user.avatar, createdAt: user.createdAt, updatedAt: user.updatedAt },
       workspaces: user.workspaces.map((wm) => ({
         ...wm.workspace,
-        role: wm.role,
-        alias: wm.alias,
+        userRole: wm.role,
+        userAlias: wm.alias,
       })),
     })
   } catch (error) {
-    console.error('Get user error:', error)
-    return NextResponse.json({ error: 'Failed to get user' }, { status: 500 })
+    console.error('Fetch user error:', error)
+    return NextResponse.json({ error: 'Failed to fetch user' }, { status: 500 })
   }
 }

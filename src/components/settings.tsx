@@ -50,7 +50,7 @@ export function SettingsPage() {
   const updateWorkspace = useUpdateWorkspace(wsId)
   const { data: membersData } = useMembers(wsId)
   const { data: memoriesData } = useMemories(wsId)
-  const { data: subscriptionsData } = useSubscriptions(currentUser?.id ?? null)
+  const { data: subscriptionsData } = useSubscriptions()
 
   const members = membersData?.members ?? []
   const memories = memoriesData?.memories ?? []

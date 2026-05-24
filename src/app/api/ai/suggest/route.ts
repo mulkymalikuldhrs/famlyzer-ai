@@ -1,138 +1,94 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth'
+import { aiSuggestSchema } from '@/lib/validations'
+import { checkRateLimit, RATE_LIMITS } from '@/lib/rate-limit'
+import { aiChat as callAi, sanitizeAiInput, SYSTEM_PROMPT } from '@/lib/ai'
 import { db } from '@/lib/db'
-import { SYSTEM_PROMPT, aiChat } from '@/lib/ai'
 
 export async function POST(request: NextRequest) {
   try {
+    const session = await getServerSession(authOptions)
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const rateLimit = checkRateLimit(session.user.id, RATE_LIMITS.AI_SUGGEST)
+    if (!rateLimit.allowed) {
+      return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 })
+    }
+
     const body = await request.json()
-    const { workspaceId, type } = body
+    const validated = aiSuggestSchema.parse(body)
 
-    if (!workspaceId) {
-      return NextResponse.json({ error: 'workspaceId is required' }, { status: 400 })
-    }
-
-    const validTypes = ['preventive', 'corrective', 'strategic', 'behavioral']
-    const suggestionType = validTypes.includes(type) ? type : 'preventive'
-
-    const workspace = await db.workspace.findUnique({
-      where: { id: workspaceId },
-      include: {
-        members: { include: { user: { select: { name: true } } } },
-        tasks: { where: { status: { in: ['pending', 'approved'] } }, take: 15, orderBy: { priority: 'desc' } },
-        accounts: true,
-        transactions: { take: 20, orderBy: { date: 'desc' } },
-        budgetRules: { where: { isActive: true } },
-        memories: { where: { layer: 'long_term' }, take: 10, orderBy: { importance: 'desc' } },
-      },
-    })
-
-    if (!workspace) {
-      return NextResponse.json({ error: 'Workspace not found' }, { status: 404 })
-    }
-
-    const contextData = {
-      members: workspace.members.map((m) => ({
-        alias: m.alias || m.user.name,
-        energy: m.energyLevel,
-        stress: m.stressLevel,
-      })),
-      pendingTasks: workspace.tasks.map((t) => ({
-        title: t.title,
-        priority: t.priority,
-        timeCost: t.timeCost,
-        energyCost: t.energyCost,
-        moneyCost: t.moneyCost,
-      })),
-      accounts: workspace.accounts.map((a) => ({
-        name: a.name,
-        balance: a.balance,
-        isEmergency: a.isEmergency,
-      })),
-      recentSpending: workspace.transactions
-        .filter((t) => t.type === 'expense')
-        .map((t) => ({ category: t.category, amount: t.amount })),
-      budgetRules: workspace.budgetRules.map((r) => ({
-        category: r.category,
-        limit: r.limitAmount,
-        priority: r.priority,
-      })),
-      longTermPatterns: workspace.memories.map((m) => m.content.substring(0, 150)),
-    }
-
-    const suggestPrompt = `Generate ${suggestionType} suggestions for this workspace. Type definition:
-- preventive: anticipate problems before they happen
-- corrective: address issues that are starting to develop
-- strategic: long-term planning and optimization
-- behavioral: patterns and habits to adopt or change
-
-Context:
-${JSON.stringify(contextData, null, 2)}
-
-For each suggestion, provide EXACTLY this JSON format (array of 3-5 suggestions):
-[
-  {
-    "title": "Brief title",
-    "reason": "Why this suggestion is needed",
-    "consequence": "What happens if not acted upon",
-    "actionData": {}
-  }
-]
-
-Return ONLY the JSON array, no other text.`
-
-    const rawResponse = await aiChat([
-      { role: 'system', content: SYSTEM_PROMPT },
-      { role: 'user', content: suggestPrompt },
+    // Gather workspace context
+    const [tasks, transactions, suggestions] = await Promise.all([
+      db.task.findMany({ where: { workspaceId: validated.workspaceId }, take: 30 }),
+      db.transaction.findMany({ where: { workspaceId: validated.workspaceId }, orderBy: { date: 'desc' }, take: 50 }),
+      db.suggestion.findMany({ where: { workspaceId: validated.workspaceId, status: 'pending' }, take: 10 }),
     ])
 
-    let suggestions: Array<{ title?: string; reason?: string; consequence?: string; actionData?: unknown }> = []
-    try {
-      const jsonMatch = rawResponse.match(/\[[\s\S]*\]/)
-      if (jsonMatch) {
-        suggestions = JSON.parse(jsonMatch[0])
-      }
-    } catch {
-      suggestions = [{
-        title: `AI ${suggestionType} suggestion`,
-        reason: rawResponse.substring(0, 500),
-        consequence: 'No specific consequence identified',
-        actionData: {},
-      }]
+    const suggestPrompt = `Generate ${validated.type} suggestions for this workspace.
+
+Current tasks: ${JSON.stringify(tasks.map(t => ({ title: t.title, status: t.status, priority: t.priority })))}
+Recent transactions: ${JSON.stringify(transactions.map(t => ({ amount: Number(t.amount), category: t.category, type: t.type })))}
+Pending suggestions: ${suggestions.length}
+
+Create 1-5 actionable ${validated.type} suggestions. Each should have: title, reason, consequence (if ignored), and actionData (JSON with specific steps).
+
+Respond ONLY with a JSON array: [{"title":"...","reason":"...","consequence":"...","actionData":{}}]`
+
+    const { content, error } = await callAi([
+      { role: 'system', content: SYSTEM_PROMPT },
+      { role: 'user', content: sanitizeAiInput(suggestPrompt) },
+    ], { maxTokens: 2048 })
+
+    if (error) {
+      return NextResponse.json({ error: 'AI suggestion failed: ' + error }, { status: 500 })
     }
 
-    const createdSuggestions = await Promise.all(
-      suggestions.slice(0, 5).map((s: { title?: string; reason?: string; consequence?: string; actionData?: unknown }) =>
+    // Parse AI response and create suggestions in DB
+    let suggestionsData: Array<{ title: string; reason: string; consequence?: string; actionData?: unknown }> = []
+    try {
+      const match = content?.match(/\[[\s\S]*\]/)
+      if (match) suggestionsData = JSON.parse(match[0])
+    } catch {
+      // Fallback: create a single suggestion from raw response
+      suggestionsData = [{ title: `AI ${validated.type} suggestion`, reason: content || 'No reason provided' }]
+    }
+
+    const created = await db.$transaction(
+      suggestionsData.slice(0, 5).map(s =>
         db.suggestion.create({
           data: {
-            workspaceId,
-            type: suggestionType,
+            workspaceId: validated.workspaceId,
+            type: validated.type,
             agentSource: 'executive',
-            title: s.title || 'Untitled suggestion',
-            reason: s.reason || '',
-            consequence: s.consequence || null,
-            actionData: s.actionData ? JSON.stringify(s.actionData) : null,
+            title: s.title,
+            reason: s.reason,
+            consequence: s.consequence,
+            actionData: s.actionData ? s.actionData : undefined,
           },
         })
       )
     )
 
+    // Log the action
     await db.agentLog.create({
       data: {
-        workspaceId,
+        workspaceId: validated.workspaceId,
         agentType: 'executive',
-        action: `generate_${suggestionType}_suggestions`,
-        result: `Generated ${createdSuggestions.length} suggestions`,
-        reasoning: `Analyzed workspace data for ${suggestionType} insights`,
-        autonomousLevel: workspace.autonomousLevel,
+        action: `suggest_${validated.type}`,
+        result: `Created ${created.length} suggestions`,
       },
     })
 
-    return NextResponse.json({
-      type: suggestionType,
-      suggestions: createdSuggestions,
-    })
-  } catch (error) {
+    return NextResponse.json({ suggestions: created })
+  } catch (error: unknown) {
+    if (error instanceof Error && error.name === 'ZodError') {
+      return NextResponse.json({ error: 'Validation failed' }, { status: 400 })
+    }
     console.error('AI suggest error:', error)
-    return NextResponse.json({ error: 'Failed to generate suggestions' }, { status: 500 })
+    return NextResponse.json({ error: 'AI suggestion failed' }, { status: 500 })
   }
 }

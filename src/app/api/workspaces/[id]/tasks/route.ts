@@ -1,64 +1,92 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth'
 import { db } from '@/lib/db'
-
-export async function POST(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  try {
-    const { id: workspaceId } = await params
-    const body = await request.json()
-    const { title, description, timeCost, energyCost, moneyCost, priority, assignedTo, dependencies, dueDate } = body
-
-    if (!title) {
-      return NextResponse.json({ error: 'Title is required' }, { status: 400 })
-    }
-
-    const task = await db.task.create({
-      data: {
-        workspaceId,
-        title,
-        description: description || null,
-        timeCost: timeCost || 0,
-        energyCost: energyCost || 0,
-        moneyCost: moneyCost || 0,
-        priority: priority || 'medium',
-        assignedTo: assignedTo || null,
-        dependencies: dependencies ? (typeof dependencies === 'object' ? JSON.stringify(dependencies) : dependencies) : null,
-        dueDate: dueDate ? new Date(dueDate) : null,
-      },
-    })
-
-    return NextResponse.json({ task }, { status: 201 })
-  } catch (error) {
-    console.error('Create task error:', error)
-    return NextResponse.json({ error: 'Failed to create task' }, { status: 500 })
-  }
-}
+import { createTaskSchema } from '@/lib/validations'
+import { checkRateLimit, RATE_LIMITS } from '@/lib/rate-limit'
 
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id: workspaceId } = await params
-    const status = request.nextUrl.searchParams.get('status')
-    const priority = request.nextUrl.searchParams.get('priority')
-    const assignedTo = request.nextUrl.searchParams.get('assignedTo')
+    const session = await getServerSession(authOptions)
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
 
-    const where: Record<string, unknown> = { workspaceId }
+    const { id } = await params
+    const { searchParams } = new URL(request.url)
+
+    const where: Record<string, unknown> = { workspaceId: id }
+    const status = searchParams.get('status')
+    const priority = searchParams.get('priority')
+    const page = parseInt(searchParams.get('page') || '1')
+    const limit = Math.min(parseInt(searchParams.get('limit') || '50'), 100)
+
     if (status) where.status = status
     if (priority) where.priority = priority
-    if (assignedTo) where.assignedTo = assignedTo
 
-    const tasks = await db.task.findMany({
-      where,
-      orderBy: { createdAt: 'desc' },
+    const [tasks, total] = await Promise.all([
+      db.task.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        skip: (page - 1) * limit,
+        take: limit,
+      }),
+      db.task.count({ where }),
+    ])
+
+    return NextResponse.json({
+      data: tasks,
+      pagination: { page, limit, total, pages: Math.ceil(total / limit) },
+    })
+  } catch (error) {
+    console.error('Fetch tasks error:', error)
+    return NextResponse.json({ error: 'Failed to fetch tasks' }, { status: 500 })
+  }
+}
+
+export async function POST(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const session = await getServerSession(authOptions)
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const rateLimit = checkRateLimit(session.user.id, RATE_LIMITS.API_WRITE)
+    if (!rateLimit.allowed) {
+      return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 })
+    }
+
+    const { id } = await params
+    const body = await request.json()
+    const validated = createTaskSchema.parse(body)
+
+    const task = await db.task.create({
+      data: {
+        workspaceId: id,
+        title: validated.title,
+        description: validated.description,
+        timeCost: validated.timeCost,
+        energyCost: validated.energyCost,
+        moneyCost: validated.moneyCost,
+        priority: validated.priority,
+        assignedToId: validated.assignedTo || null,
+        dependencies: validated.dependencies ?? undefined,
+        dueDate: validated.dueDate ? new Date(validated.dueDate) : null,
+      },
     })
 
-    return NextResponse.json({ tasks })
-  } catch (error) {
-    console.error('List tasks error:', error)
-    return NextResponse.json({ error: 'Failed to list tasks' }, { status: 500 })
+    return NextResponse.json(task, { status: 201 })
+  } catch (error: unknown) {
+    if (error instanceof Error && error.name === 'ZodError') {
+      return NextResponse.json({ error: 'Validation failed' }, { status: 400 })
+    }
+    console.error('Create task error:', error)
+    return NextResponse.json({ error: 'Failed to create task' }, { status: 500 })
   }
 }

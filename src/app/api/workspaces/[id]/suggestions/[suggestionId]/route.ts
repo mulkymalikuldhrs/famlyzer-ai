@@ -1,51 +1,39 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth'
 import { db } from '@/lib/db'
+import { updateSuggestionSchema } from '@/lib/validations'
+import { checkRateLimit, RATE_LIMITS } from '@/lib/rate-limit'
 
 export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string; suggestionId: string }> }
 ) {
   try {
-    const { id: workspaceId, suggestionId } = await params
+    const session = await getServerSession(authOptions)
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const rateLimit = checkRateLimit(session.user.id, RATE_LIMITS.API_WRITE)
+    if (!rateLimit.allowed) {
+      return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 })
+    }
+
+    const { suggestionId } = await params
     const body = await request.json()
-    const { status } = body
+    const validated = updateSuggestionSchema.parse(body)
 
-    if (!status) {
-      return NextResponse.json({ error: 'Status is required' }, { status: 400 })
-    }
-
-    const validStatuses = ['pending', 'accepted', 'simulated', 'ignored']
-    if (!validStatuses.includes(status)) {
-      return NextResponse.json({ error: `Invalid status. Valid: ${validStatuses.join(', ')}` }, { status: 400 })
-    }
-
-    const suggestion = await db.suggestion.findFirst({
-      where: { id: suggestionId, workspaceId },
-    })
-
-    if (!suggestion) {
-      return NextResponse.json({ error: 'Suggestion not found' }, { status: 404 })
-    }
-
-    const updated = await db.suggestion.update({
+    const suggestion = await db.suggestion.update({
       where: { id: suggestionId },
-      data: { status },
+      data: { status: validated.status },
     })
 
-    if (status === 'accepted' || status === 'simulated') {
-      await db.memory.create({
-        data: {
-          workspaceId,
-          layer: 'decision',
-          category: 'suggestion_response',
-          content: `Suggestion "${suggestion.title}" was ${status}. Reason: ${suggestion.reason}`,
-          importance: 6,
-        },
-      })
+    return NextResponse.json(suggestion)
+  } catch (error: unknown) {
+    if (error instanceof Error && error.name === 'ZodError') {
+      return NextResponse.json({ error: 'Validation failed' }, { status: 400 })
     }
-
-    return NextResponse.json({ suggestion: updated })
-  } catch (error) {
     console.error('Update suggestion error:', error)
     return NextResponse.json({ error: 'Failed to update suggestion' }, { status: 500 })
   }
