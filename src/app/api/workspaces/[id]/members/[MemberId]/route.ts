@@ -6,12 +6,12 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string; MemberId: string }> }
 ) {
   try {
-    const { id: workspaceId, memberId } = await params
+    const { id: workspaceId, MemberId } = await params
     const body = await request.json()
     const { energyLevel, stressLevel, alias, authorityLevel, constraints, preferences, visibilityScope, role } = body
 
     const member = await db.workspaceMember.findFirst({
-      where: { id: memberId, workspaceId },
+      where: { id: MemberId, workspaceId },
     })
 
     if (!member) {
@@ -19,7 +19,7 @@ export async function PATCH(
     }
 
     const updated = await db.workspaceMember.update({
-      where: { id: memberId },
+      where: { id: MemberId },
       data: {
         ...(energyLevel !== undefined && { energyLevel }),
         ...(stressLevel !== undefined && { stressLevel }),

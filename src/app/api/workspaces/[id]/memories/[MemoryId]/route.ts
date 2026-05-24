@@ -6,17 +6,17 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string; MemoryId: string }> }
 ) {
   try {
-    const { id: workspaceId, memoryId } = await params
+    const { id: workspaceId, MemoryId } = await params
 
     const memory = await db.memory.findFirst({
-      where: { id: memoryId, workspaceId },
+      where: { id: MemoryId, workspaceId },
     })
 
     if (!memory) {
       return NextResponse.json({ error: 'Memory not found' }, { status: 404 })
     }
 
-    await db.memory.delete({ where: { id: memoryId } })
+    await db.memory.delete({ where: { id: MemoryId } })
 
     return NextResponse.json({ success: true })
   } catch (error) {
