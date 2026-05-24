@@ -1,0 +1,26 @@
+import { NextRequest, NextResponse } from 'next/server'
+import { db } from '@/lib/db'
+
+export async function DELETE(
+  _request: NextRequest,
+  { params }: { params: Promise<{ id: string; MemoryId: string }> }
+) {
+  try {
+    const { id: workspaceId, MemoryId } = await params
+
+    const memory = await db.memory.findFirst({
+      where: { id: MemoryId, workspaceId },
+    })
+
+    if (!memory) {
+      return NextResponse.json({ error: 'Memory not found' }, { status: 404 })
+    }
+
+    await db.memory.delete({ where: { id: MemoryId } })
+
+    return NextResponse.json({ success: true })
+  } catch (error) {
+    console.error('Delete memory error:', error)
+    return NextResponse.json({ error: 'Failed to delete memory' }, { status: 500 })
+  }
+}
