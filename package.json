@@ -1,7 +1,40 @@
 {
   "name": "famlyzer-ai",
-  "version": "4.0.0",
-  "private": true,
+  "version": "4.0.1",
+  "private": false,
+  "license": "MIT",
+  "author": {
+    "name": "Mulky Malikul Dhaher",
+    "email": "mulkymalikuldhaher@email.com",
+    "url": "https://github.com/mulkymalikuldhrs"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mulkymalikuldhrs/famlyzer-ai.git"
+  },
+  "bugs": {
+    "url": "https://github.com/mulkymalikuldhrs/famlyzer-ai/issues"
+  },
+  "homepage": "https://github.com/mulkymalikuldhrs/famlyzer-ai#readme",
+  "keywords": [
+    "ai",
+    "saas",
+    "autonomous-agents",
+    "family-planning",
+    "financial-intelligence",
+    "knowledge-vault",
+    "memory-system",
+    "decision-intelligence",
+    "nextjs",
+    "typescript",
+    "postgresql",
+    "prisma",
+    "stripe",
+    "zustand",
+    "tailwindcss",
+    "react",
+    "shadcn-ui"
+  ],
   "description": "Autonomous AI Decision & Planning Intelligence — Life, Family, Team, Finance SaaS Platform",
   "scripts": {
     "dev": "next dev -p 3000 2>&1 | tee dev.log",

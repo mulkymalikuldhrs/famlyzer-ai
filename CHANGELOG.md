@@ -7,6 +7,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [4.0.1] - 2026-05-25
+
+### Added — Open Source & Community
+
+- **MIT License** — Project now open source under MIT license
+- **Trilingual README** — Full documentation in English, Bahasa Indonesia, and 中文 (Chinese)
+- **CONTRIBUTING.md** — Comprehensive contributor guide with trilingual sections
+- **Code of Conduct** — Contributor Covenant v2.1 adopted
+- **Security Policy** — Responsible disclosure process via security@ email
+- **GitHub Issue Templates** — Bug Report, Feature Request, and Translation templates
+- **Pull Request Template** — Standardized PR checklist with quality gates
+- **FUNDING.yml** — GitHub Sponsors and contact funding links
+- **Issue Template Config** — Blank issues disabled, contact links added
+- **package.json** — Added author, repository, bugs, homepage, and keywords fields
+- **Star History** — Dynamic star history chart in README
+- **Animated badges** — Shields.io badges with for-the-badge style throughout README
+- **Profile views counter** — Visitor tracking via komarev.com
+- **Social links** — GitHub follow and Twitter follow badges in footer
+- **Language switcher** — Clickable badges for EN / ID / CN sections
+
+### Changed
+
+- `package.json`: `private` changed from `true` to `false` for open source
+- `package.json`: `license` set to `MIT`
+- README completely rewritten with trilingual sections and visual enhancements
+- CONTRIBUTING.md rewritten with full trilingual support (EN/ID/CN)
+
+---
+
 ## [4.0.0] - 2026-05-25
 
 ### Added — Security & Authentication
