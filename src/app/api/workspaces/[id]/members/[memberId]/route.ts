@@ -25,15 +25,10 @@ export async function PATCH(
         ...(stressLevel !== undefined && { stressLevel }),
         ...(alias !== undefined && { alias }),
         ...(authorityLevel !== undefined && { authorityLevel }),
-        ...(constraints !== undefined && { constraints: typeof constraints === 'object' ? JSON.stringify(constraints) : constraints }),
-        ...(preferences !== undefined && { preferences: typeof preferences === 'object' ? JSON.stringify(preferences) : preferences }),
-        ...(visibilityScope !== undefined && { visibilityScope: typeof visibilityScope === 'object' ? JSON.stringify(visibilityScope) : visibilityScope }),
+        ...(constraints !== undefined && { constraints: JSON.stringify(constraints) }),
+        ...(preferences !== undefined && { preferences: JSON.stringify(preferences) }),
+        ...(visibilityScope !== undefined && { visibilityScope: JSON.stringify(visibilityScope) }),
         ...(role !== undefined && { role }),
-      },
-      include: {
-        user: {
-          select: { id: true, email: true, name: true, avatar: true },
-        },
       },
     })
 
