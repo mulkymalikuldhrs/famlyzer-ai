@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [4.1.0] - 2026-03-05
+
+### Changed
+- Updated README with trilingual disclaimer (EN/ID/CN) and "For Education Purpose" notice
+- Updated README contributing section to welcome community contributions
+- Changed license reference from Proprietary to MIT
+- Added contact information (Mulky Malikul Dhaher | mulkymalikuldhaher@email.com)
+
+---
+
 ## [4.0.0] - 2026-05-25
 
 ### Added — Security & Authentication
