@@ -82,3 +82,19 @@ venv/
 
 # Replit
 .replit
+
+# Prisma
+prisma/migrations/
+
+# Lock files (keep package-lock.json for npm, but ignore bun.lock for reproducibility)
+# bun.lock
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+Thumbs.db

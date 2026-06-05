@@ -15,24 +15,39 @@ export async function GET(
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
+
     const { id } = await params
     const rules = await db.budgetRule.findMany({
       where: { workspaceId: id },
       orderBy: { createdAt: 'desc' },
     })
+
     return NextResponse.json(rules)
   } catch (error) {
     console.error('Fetch budget rules error:', error)
     return NextResponse.json({ error: 'Failed to fetch budget rules' }, { status: 500 })
   }
 }
+
 export async function POST(
   request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const session = await getServerSession(authOptions)
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
     const rateLimit = checkRateLimit(session.user.id, RATE_LIMITS.API_WRITE)
     if (!rateLimit.allowed) {
       return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 })
+    }
+
+    const { id } = await params
     const body = await request.json()
     const validated = createBudgetRuleSchema.parse(body)
+
     const rule = await db.budgetRule.create({
       data: {
         workspaceId: id,
@@ -42,9 +57,14 @@ export async function POST(
         priority: validated.priority,
         isActive: validated.isActive,
       },
+    })
+
     return NextResponse.json(rule, { status: 201 })
   } catch (error: unknown) {
     if (isZodError(error)) {
       return NextResponse.json({ error: 'Validation failed' }, { status: 400 })
+    }
     console.error('Create budget rule error:', error)
     return NextResponse.json({ error: 'Failed to create budget rule' }, { status: 500 })
+  }
+}

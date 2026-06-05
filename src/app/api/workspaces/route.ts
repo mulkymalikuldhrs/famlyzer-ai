@@ -52,7 +52,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(workspace, { status: 201 })
   } catch (error: unknown) {
     if (isZodError(error)) {
-      return NextResponse.json({ error: 'Validation failed', details: error }, { status: 400 })
+      return NextResponse.json({ error: 'Validation failed' }, { status: 400 })
     }
     console.error('Create workspace error:', error)
     return NextResponse.json({ error: 'Failed to create workspace' }, { status: 500 })

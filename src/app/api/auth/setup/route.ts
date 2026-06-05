@@ -64,7 +64,7 @@ export async function POST(request: NextRequest) {
     )
   } catch (error: unknown) {
     if (isZodError(error)) {
-      return NextResponse.json({ error: 'Validation failed', details: error }, { status: 400 })
+      return NextResponse.json({ error: 'Validation failed' }, { status: 400 })
     }
     console.error('Auth setup error:', error)
     return NextResponse.json({ error: 'Authentication failed' }, { status: 500 })
