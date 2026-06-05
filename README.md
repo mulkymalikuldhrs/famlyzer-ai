@@ -2,7 +2,7 @@
 
 > Autonomous Decision & Planning Intelligence for Life, Family & Finance
 
-[![Version](https://img.shields.io/badge/version-5.0.0-emerald)](https://github.com/mulkymalikuldhrs/famlyzer-ai)
+[![Version](https://img.shields.io/badge/version-6.0.0-emerald)](https://github.com/mulkymalikuldhrs/famlyzer-ai)
 [![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
 ## Overview

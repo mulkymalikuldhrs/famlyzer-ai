@@ -74,3 +74,6 @@ test2/
 
 # Caddy (not needed for Next.js)
 Caddyfile
+
+# Replit
+.replit

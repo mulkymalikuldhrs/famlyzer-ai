@@ -16,8 +16,10 @@ export async function POST(request: NextRequest) {
         { status: 429 }
       )
     }
+
     const body = await request.json()
     const validated = authSetupSchema.parse(body)
+
     // Check if user already exists
     const existingUser = await db.user.findUnique({
       where: { email: validated.email },
@@ -27,6 +29,7 @@ export async function POST(request: NextRequest) {
         },
       },
     })
+
     if (existingUser) {
       // Verify password for existing user
       if (!existingUser.passwordHash || !(await bcrypt.compare(validated.password, existingUser.passwordHash))) {
@@ -40,6 +43,8 @@ export async function POST(request: NextRequest) {
           userAlias: wm.alias,
         })),
       })
+    }
+
     // Create new user with hashed password
     const passwordHash = await bcrypt.hash(validated.password, 12)
     const user = await db.user.create({
@@ -47,15 +52,20 @@ export async function POST(request: NextRequest) {
         email: validated.email,
         name: validated.name || null,
         passwordHash,
+      },
+    })
+
     return NextResponse.json(
       {
         user: { id: user.id, email: user.email, name: user.name, avatar: user.avatar, createdAt: user.createdAt, updatedAt: user.updatedAt },
         workspaces: [],
+      },
       { status: 201 }
     )
   } catch (error: unknown) {
     if (isZodError(error)) {
       return NextResponse.json({ error: 'Validation failed', details: error }, { status: 400 })
+    }
     console.error('Auth setup error:', error)
     return NextResponse.json({ error: 'Authentication failed' }, { status: 500 })
   }

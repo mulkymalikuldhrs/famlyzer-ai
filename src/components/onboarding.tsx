@@ -127,7 +127,7 @@ export function Onboarding() {
                     className="mb-6"
                   >
                     <div className="w-20 h-20 mx-auto rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center mb-4 shadow-lg">
-                      <Brain className="w-10 h-10 text-white" />
+                      <Brain className="w-10 h-10 text-white" aria-hidden="true" />
                     </div>
                     <h1 className="text-3xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
                       Famlyzer AI
@@ -144,7 +144,7 @@ export function Onboarding() {
                         transition={{ delay: 0.3 + i * 0.1 }}
                         className="p-3 rounded-xl bg-muted/50 text-left"
                       >
-                        <f.icon className="w-5 h-5 text-emerald-600 mb-1" />
+                        <f.icon className="w-5 h-5 text-emerald-600 mb-1" aria-hidden="true" />
                         <p className="text-sm font-medium">{f.title}</p>
                         <p className="text-xs text-muted-foreground">{f.desc}</p>
                       </motion.div>
@@ -215,8 +215,9 @@ export function Onboarding() {
                           type="button"
                           onClick={() => setShowPassword(!showPassword)}
                           className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                          aria-label={showPassword ? 'Hide password' : 'Show password'}
                         >
-                          {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                          {showPassword ? <EyeOff className="w-4 h-4" aria-hidden="true" /> : <Eye className="w-4 h-4" aria-hidden="true" />}
                         </button>
                       </div>
                     </div>
@@ -233,6 +234,7 @@ export function Onboarding() {
                   <button
                     onClick={() => setIsLogin(!isLogin)}
                     className="w-full text-center text-sm text-emerald-600 hover:text-emerald-700 mt-3"
+                    aria-label={isLogin ? 'Switch to create account' : 'Switch to sign in'}
                   >
                     {isLogin ? "Don't have an account? Create one" : 'Already have an account? Sign in'}
                   </button>
@@ -240,6 +242,7 @@ export function Onboarding() {
                   <button
                     onClick={() => setStep(0)}
                     className="w-full text-center text-sm text-muted-foreground hover:text-foreground mt-2"
+                    aria-label="Go back to welcome screen"
                   >
                     ← Back
                   </button>
@@ -276,6 +279,7 @@ export function Onboarding() {
                           <button
                             key={t.value}
                             onClick={() => setWsType(t.value)}
+                            aria-label={`Select ${t.label} workspace type`}
                             className={`p-3 rounded-xl border-2 transition-all text-center ${
                               wsType === t.value
                                 ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-950'
@@ -329,7 +333,7 @@ export function Onboarding() {
                         transition={{ delay: 0.2 + i * 0.15 }}
                         className="flex items-center gap-3 p-3 rounded-xl bg-muted/50"
                       >
-                        <item.icon className="w-5 h-5 text-emerald-600 shrink-0" />
+                        <item.icon className="w-5 h-5 text-emerald-600 shrink-0" aria-hidden="true" />
                         <span className="text-sm">{item.text}</span>
                       </motion.div>
                     ))}
