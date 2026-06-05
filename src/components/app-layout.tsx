@@ -76,7 +76,7 @@ function SidebarContent({ currentWorkspace, currentUser, activeTab, workspaces, 
       <div className="p-3">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <button className="w-full flex items-center justify-between p-2 rounded-lg hover:bg-muted transition-colors text-left">
+            <button className="w-full flex items-center justify-between p-2 rounded-lg hover:bg-muted transition-colors text-left" aria-label="Select workspace">
               <div className="min-w-0 flex-1">
                 <p className="text-sm font-medium truncate">{currentWorkspace?.name || 'Select workspace'}</p>
                 <p className="text-xs text-muted-foreground capitalize">{currentWorkspace?.type || 'No workspace'}</p>
@@ -197,7 +197,7 @@ export function AppLayout() {
   return (
     <div className="min-h-screen flex bg-background">
       {/* Desktop Sidebar */}
-      <aside className="hidden lg:flex w-64 border-r bg-card flex-col shrink-0">
+      <aside className="hidden lg:flex w-64 border-r bg-card flex-col shrink-0" aria-label="Sidebar navigation">
         <SidebarContent
           currentWorkspace={currentWorkspace}
           currentUser={currentUser}

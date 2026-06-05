@@ -75,5 +75,10 @@ test2/
 # Caddy (not needed for Next.js)
 Caddyfile
 
+# Python
+__pycache__/
+venv/
+*.pyc
+
 # Replit
 .replit

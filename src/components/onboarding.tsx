@@ -175,8 +175,9 @@ export function Onboarding() {
 
                   <div className="space-y-4">
                     <div>
-                      <label className="text-sm font-medium mb-1.5 block">Email</label>
+                      <label htmlFor="email-input" className="text-sm font-medium mb-1.5 block">Email</label>
                       <Input
+                        id="email-input"
                         type="email"
                         placeholder="you@example.com"
                         value={email}
@@ -188,8 +189,9 @@ export function Onboarding() {
                     </div>
                     {!isLogin && (
                       <div>
-                        <label className="text-sm font-medium mb-1.5 block">Name (optional)</label>
+                        <label htmlFor="name-input" className="text-sm font-medium mb-1.5 block">Name (optional)</label>
                         <Input
+                          id="name-input"
                           placeholder="Your name"
                           value={name}
                           onChange={(e) => setName(e.target.value)}
@@ -200,9 +202,10 @@ export function Onboarding() {
                       </div>
                     )}
                     <div>
-                      <label className="text-sm font-medium mb-1.5 block">Password</label>
+                      <label htmlFor="password-input" className="text-sm font-medium mb-1.5 block">Password</label>
                       <div className="relative">
                         <Input
+                          id="password-input"
                           type={showPassword ? 'text' : 'password'}
                           placeholder={isLogin ? 'Enter your password' : 'At least 8 characters'}
                           value={password}
@@ -263,8 +266,9 @@ export function Onboarding() {
 
                   <div className="space-y-4">
                     <div>
-                      <label className="text-sm font-medium mb-1.5 block">Workspace Name</label>
+                      <label htmlFor="workspace-name-input" className="text-sm font-medium mb-1.5 block">Workspace Name</label>
                       <Input
+                        id="workspace-name-input"
                         placeholder="My Family Hub"
                         value={wsName}
                         onChange={(e) => setWsName(e.target.value)}
