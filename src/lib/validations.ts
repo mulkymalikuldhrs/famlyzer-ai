@@ -38,14 +38,17 @@ export const addMemberSchema = z.object({
   role: z.enum(['owner', 'admin', 'member']).default('member'),
 })
 
+/** JSON object schema for member constraints/preferences/visibility */
+const jsonRecordSchema = z.record(z.unknown()).optional()
+
 export const updateMemberSchema = z.object({
   alias: z.string().max(50).optional(),
   authorityLevel: z.number().int().min(1).max(5).optional(),
   energyLevel: z.number().int().min(0).max(100).optional(),
   stressLevel: z.number().int().min(0).max(100).optional(),
-  constraints: z.any().optional(),
-  preferences: z.any().optional(),
-  visibilityScope: z.any().optional(),
+  constraints: jsonRecordSchema,
+  preferences: jsonRecordSchema,
+  visibilityScope: jsonRecordSchema,
   role: z.enum(['owner', 'admin', 'member']).optional(),
 })
 
@@ -120,9 +123,9 @@ export const createVaultDocumentSchema = z.object({
   content: z.string().max(100000).optional(),
   priority: z.enum(['low', 'medium', 'high']).default('medium'),
   scope: z.enum(['workspace', 'family', 'personal']).default('workspace'),
-  visibility: z.any().optional(),
+  visibility: z.array(z.string()).optional(),
   tags: z.array(z.string()).optional(),
-  metadata: z.any().optional(),
+  metadata: jsonRecordSchema,
 })
 
 export const updateVaultDocumentSchema = z.object({
@@ -131,9 +134,9 @@ export const updateVaultDocumentSchema = z.object({
   content: z.string().max(100000).optional(),
   priority: z.enum(['low', 'medium', 'high']).optional(),
   scope: z.enum(['workspace', 'family', 'personal']).optional(),
-  visibility: z.any().optional(),
+  visibility: z.array(z.string()).optional(),
   tags: z.array(z.string()).optional(),
-  metadata: z.any().optional(),
+  metadata: jsonRecordSchema,
 })
 
 // ── Memories ──
@@ -197,3 +200,8 @@ export const paginationSchema = z.object({
   limit: z.coerce.number().int().positive().max(100).default(50),
   cursor: z.string().optional(),
 })
+
+/** Helper to check if an error is a ZodError (works across bundlers) */
+export function isZodError(error: unknown): error is z.ZodError {
+  return error instanceof z.ZodError
+}

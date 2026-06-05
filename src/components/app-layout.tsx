@@ -112,6 +112,8 @@ function SidebarContent({ currentWorkspace, currentUser, activeTab, workspaces, 
               <button
                 key={item.id}
                 onClick={() => setTab(item.id)}
+                aria-label={`Navigate to ${item.label}`}
+                aria-current={isActive ? 'page' : undefined}
                 className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all ${
                   isActive
                     ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-400 font-medium'
@@ -208,12 +210,12 @@ export function AppLayout() {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 min-w-0">
+      <main className="flex-1 min-w-0" role="main">
         {/* Mobile Header */}
         <div className="lg:hidden flex items-center gap-3 p-3 border-b bg-card">
           <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
             <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" className="shrink-0">
+              <Button variant="ghost" size="icon" className="shrink-0" aria-label="Open navigation menu">
                 <Menu className="w-5 h-5" />
               </Button>
             </SheetTrigger>

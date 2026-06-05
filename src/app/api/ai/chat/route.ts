@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { aiChatSchema } from '@/lib/validations'
 import { checkRateLimit, RATE_LIMITS } from '@/lib/rate-limit'
+import { isZodError } from '@/lib/validations'
 import { aiChat as callAi, sanitizeAiInput, SYSTEM_PROMPT } from '@/lib/ai'
 import { db } from '@/lib/db'
 
@@ -12,15 +13,11 @@ export async function POST(request: NextRequest) {
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
-
     const rateLimit = checkRateLimit(session.user.id, RATE_LIMITS.AI_CHAT)
     if (!rateLimit.allowed) {
       return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 })
-    }
-
     const body = await request.json()
     const validated = aiChatSchema.parse(body)
-
     // Build context from workspace data if workspaceId provided
     let contextStr = ''
     if (validated.workspaceId) {
@@ -30,12 +27,8 @@ export async function POST(request: NextRequest) {
         db.financeAccount.findMany({ where: { workspaceId: validated.workspaceId } }),
       ])
       contextStr = `Workspace context:\n- Members: ${members.length}\n- Active tasks: ${tasks.length}\n- Accounts: ${accounts.map(a => `${a.name}: ${a.balance}`).join(', ')}`
-    }
-
     if (validated.context) {
       contextStr += `\n\nUser context: ${sanitizeAiInput(validated.context)}`
-    }
-
     // Build messages - NEVER allow client to inject system role
     const messages = [
       { role: 'system' as const, content: SYSTEM_PROMPT + (contextStr ? '\n\n' + contextStr : '') },
@@ -44,13 +37,9 @@ export async function POST(request: NextRequest) {
         content: sanitizeAiInput(m.content),
       })),
     ]
-
     const { content, error } = await callAi(messages)
-
     if (error) {
       return NextResponse.json({ error: 'AI processing failed: ' + error }, { status: 500 })
-    }
-
     // Store chat in memory if workspace context
     if (validated.workspaceId && content) {
       await db.memory.create({
@@ -63,13 +52,10 @@ export async function POST(request: NextRequest) {
           expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
         },
       })
-    }
-
     return NextResponse.json({ content })
   } catch (error: unknown) {
-    if (error instanceof Error && error.name === 'ZodError') {
+    if (isZodError(error)) {
       return NextResponse.json({ error: 'Validation failed' }, { status: 400 })
-    }
     console.error('AI chat error:', error)
     return NextResponse.json({ error: 'AI chat failed' }, { status: 500 })
   }

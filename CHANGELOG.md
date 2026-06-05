@@ -7,6 +7,60 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [5.0.0] - 2026-03-05
+
+### Added — Error Handling & Resilience
+
+- `ErrorBoundary` React component wrapping entire app — shows user-friendly fallback with retry button
+- `error.tsx` — Next.js global error boundary with proper error display
+- `loading.tsx` — Global loading state with accessible `role="status"`
+- `not-found.tsx` — 404 page with navigation back to home
+- All error pages include `role="alert"` for screen reader accessibility
+
+### Fixed — Validation & Type Safety
+
+- Replaced all `z.any()` in validation schemas with `z.record(z.unknown()).optional()` for constraints, preferences, visibilityScope, visibility, and metadata fields
+- Vault `visibility` and `tags` schemas changed from `z.any()` to `z.array(z.string()).optional()` for proper type inference
+- Added `isZodError()` helper function to correctly detect Zod validation errors (previous `error.name === 'ZodError'` check was unreliable across bundlers)
+- Fixed all 22 API routes to use `isZodError()` instead of the broken `error instanceof Error && error.name === 'ZodError'` pattern
+- Added `NaN` guards on all `parseInt()` calls for pagination parameters (`page`, `limit`) — now uses `Math.max(1, parseInt(...) || defaultValue)` to prevent NaN from crashing queries
+
+### Added — Accessibility
+
+- `aria-label` added to all navigation buttons in sidebar (`Navigate to Dashboard`, etc.)
+- `aria-current="page"` on active navigation item
+- `role="main"` on main content area
+- `aria-label="Open navigation menu"` on mobile hamburger button
+- `aria-label="Retry loading the page"` on error boundary retry button
+- `aria-label="Return to the home page"` on not-found page button
+- All loading states include `role="status"` for screen readers
+
+### Added — SEO & Metadata
+
+- Open Graph metadata (`og:title`, `og:description`, `og:type`, `og:site_name`)
+- `authors` metadata field
+- `metadataBase` for proper URL resolution
+- Extended keywords list with SaaS, Budget, Task Management terms
+
+### Fixed — Infrastructure
+
+- Added `/dist` to `.gitignore` (was missing, could accidentally track build artifacts)
+- Error boundary wrapping in root layout prevents white screen of death on unhandled errors
+
+### Changed — Documentation
+
+- README.md completely rewritten with comprehensive documentation:
+  - Feature list with badges
+  - Full tech stack table
+  - Step-by-step setup guide
+  - Environment variables table with required/optional indicators
+  - Project structure tree
+  - Complete API endpoint reference
+  - Security features documentation
+  - License and trilingual disclaimer
+
+---
+
 ## [4.1.0] - 2026-03-05
 
 ### Changed
@@ -124,40 +178,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - **Complete platform migration** from Vite/React to Next.js 16 with App Router
-- **Prisma ORM** with SQLite database schema (12 models: User, Workspace, WorkspaceMember, Task, FinanceAccount, Transaction, BudgetRule, FinancialGoal, VaultDocument, Memory, Suggestion, AgentLog, Subscription)
+- **Prisma ORM** with SQLite database schema (12 models)
 - **26 REST API endpoints** covering all CRUD operations
-- **AI integration** via z-ai-web-dev-sdk (replacing direct Gemini API calls)
-- **Dashboard** with cashflow timeline charts, emergency fund meter, stress & energy index bars, 7-agent status grid, autonomous status indicator, AI decision log, and predictions panel
-- **Planner** with task pipeline (Pending/Approved/Done), resource cost visualization (time/energy/money), AI schedule optimization, calendar week view, and AI rejection notices
-- **Finance** with multi-account support, transaction tracking with category filtering, budget rules with auto-veto warnings, financial goals with progress tracking, and AI financial audit
-- **Knowledge Vault** with document management (notes, rules, contracts, PDFs, images, audio), search/filter by type and scope, metadata system with priority/visibility/tags, and AI intelligence indicator
-- **AI Assistant** chat interface with 8 agent selection, quick action buttons (Analyze, Suggest, Optimize, Audit), memory layer indicator, and contextual workspace awareness
-- **Settings** with workspace configuration, 4-level autonomous system selector, member management with energy/stress tracking, subscription tier display, and 4-layer memory management dashboard
-- **Onboarding wizard** with 4-step setup (Welcome, Account, Workspace, Tutorial)
+- **AI integration** via z-ai-web-dev-sdk
+- **Dashboard** with cashflow timeline charts, emergency fund meter, stress & energy index bars, 7-agent status grid
+- **Planner** with task pipeline, resource cost visualization, AI schedule optimization, calendar week view
+- **Finance** with multi-account support, transaction tracking, budget rules with auto-veto warnings, financial goals
+- **Knowledge Vault** with document management, search/filter, AI intelligence indicator
+- **AI Assistant** chat interface with 8 agent selection, quick action buttons, memory layer indicator
+- **Settings** with workspace configuration, 4-level autonomous system, member management, subscription tiers
+- **Onboarding wizard** with 4-step setup
 - **Zustand** state management with localStorage persistence
 - **React Query** for server state with automatic cache invalidation
 - **Responsive design** with collapsible sidebar for mobile
 - **shadcn/ui** component library with emerald/teal color theme
 - **Framer Motion** animations for page transitions and card entries
 - **Sonner** toast notifications for user feedback
-
-### Changed
-
-- Migrated from Vite build system to Next.js 16
-- Migrated from direct Google Gemini API to z-ai-web-dev-sdk
-- Migrated from in-memory state to persistent SQLite database via Prisma
-- Migrated from client-side AI calls to server-side API routes
-- Migrated from CSS modules to Tailwind CSS 4 + shadcn/ui
-- Replaced JS Puter orchestration with z-ai-web-dev-sdk agent system
-
-### Removed
-
-- Vite build configuration
-- Direct Gemini API client (`@google/genai`)
-- Client-side Google Drive integration
-- Client-side IndexedDB storage
-- Firebase integration stub
-- Service worker (sw.js)
 
 ---
 
@@ -175,18 +211,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Subscription Service with trial logic
 - Drive Service for Google Drive data persistence
 - Event System for agent communication
-- Dashboard with autonomous status display
-- Planner with AI optimization
-- Finance with auto-veto system
-- Vault with document management
-- AI Assistant chat interface
-- Onboarding flow
-
-### Changed
-
-- Replaced JS Puter orchestration with Gemini AI agents
-- All 7 agents now Gemini-powered instead of rule-based
-- Improved autonomous flow with trigger detection
 
 ---
 
@@ -206,6 +230,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+[5.0.0]: https://github.com/mulkymalikuldhrs/famlyzer-ai/releases/tag/v5.0.0
+[4.1.0]: https://github.com/mulkymalikuldhrs/famlyzer-ai/releases/tag/v4.1.0
 [4.0.0]: https://github.com/mulkymalikuldhrs/famlyzer-ai/releases/tag/v4.0.0
 [3.0.0]: https://github.com/mulkymalikuldhrs/famlyzer-ai/releases/tag/v3.0.0
 [2.0.0]: https://github.com/mulkymalikuldhrs/famlyzer-ai/releases/tag/v2.0.0

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { db } from '@/lib/db'
+import { isZodError } from '@/lib/validations'
 import { createTaskSchema } from '@/lib/validations'
 import { checkRateLimit, RATE_LIMITS } from '@/lib/rate-limit'
 
@@ -14,19 +15,15 @@ export async function GET(
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
-
     const { id } = await params
     const { searchParams } = new URL(request.url)
-
     const where: Record<string, unknown> = { workspaceId: id }
     const status = searchParams.get('status')
     const priority = searchParams.get('priority')
-    const page = parseInt(searchParams.get('page') || '1')
-    const limit = Math.min(parseInt(searchParams.get('limit') || '50'), 100)
-
+    const page = Math.max(1, parseInt(searchParams.get('page') || '1') || 1)
+    const limit = Math.min(Math.max(1, parseInt(searchParams.get('limit') || '50') || 50), 100)
     if (status) where.status = status
     if (priority) where.priority = priority
-
     const [tasks, total] = await Promise.all([
       db.task.findMany({
         where,
@@ -36,7 +33,6 @@ export async function GET(
       }),
       db.task.count({ where }),
     ])
-
     return NextResponse.json({
       data: tasks,
       pagination: { page, limit, total, pages: Math.ceil(total / limit) },
@@ -46,26 +42,12 @@ export async function GET(
     return NextResponse.json({ error: 'Failed to fetch tasks' }, { status: 500 })
   }
 }
-
 export async function POST(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  try {
-    const session = await getServerSession(authOptions)
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
     const rateLimit = checkRateLimit(session.user.id, RATE_LIMITS.API_WRITE)
     if (!rateLimit.allowed) {
       return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 })
-    }
-
-    const { id } = await params
     const body = await request.json()
     const validated = createTaskSchema.parse(body)
-
     const task = await db.task.create({
       data: {
         workspaceId: id,
@@ -79,14 +61,9 @@ export async function POST(
         dependencies: validated.dependencies ?? undefined,
         dueDate: validated.dueDate ? new Date(validated.dueDate) : null,
       },
-    })
-
     return NextResponse.json(task, { status: 201 })
   } catch (error: unknown) {
-    if (error instanceof Error && error.name === 'ZodError') {
+    if (isZodError(error)) {
       return NextResponse.json({ error: 'Validation failed' }, { status: 400 })
-    }
     console.error('Create task error:', error)
     return NextResponse.json({ error: 'Failed to create task' }, { status: 500 })
-  }
-}

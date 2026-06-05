@@ -16,7 +16,7 @@ export async function GET(
     const { id } = await params
     const { searchParams } = new URL(request.url)
     const agentType = searchParams.get('agentType')
-    const limit = Math.min(parseInt(searchParams.get('limit') || '50'), 100)
+    const limit = Math.min(Math.max(1, parseInt(searchParams.get('limit') || '50') || 50), 100)
 
     const where: Record<string, unknown> = { workspaceId: id }
     if (agentType) where.agentType = agentType
