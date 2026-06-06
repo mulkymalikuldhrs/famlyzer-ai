@@ -39,7 +39,7 @@ export const addMemberSchema = z.object({
 })
 
 /** JSON object schema for member constraints/preferences/visibility */
-const jsonRecordSchema = z.record(z.unknown()).optional()
+const jsonRecordSchema = z.record(z.string(), z.unknown()).optional()
 
 export const updateMemberSchema = z.object({
   alias: z.string().max(50).optional(),

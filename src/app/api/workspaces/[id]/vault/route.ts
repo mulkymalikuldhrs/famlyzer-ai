@@ -76,7 +76,7 @@ export async function POST(
         scope: validated.scope,
         visibility: validated.visibility ?? undefined,
         tags: validated.tags ?? undefined,
-        metadata: validated.metadata ?? undefined,
+        metadata: validated.metadata ? JSON.parse(JSON.stringify(validated.metadata)) : undefined,
       },
     })
 

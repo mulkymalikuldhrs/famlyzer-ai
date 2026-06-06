@@ -178,6 +178,12 @@ src/
 
 MIT © Mulky Malikul Dhaher
 
+## Author
+
+**Mulky Malikul Dhaher**
+Email: mulkymalikudhr@mail.com
+GitHub: [@mulkymalikuldhrs](https://github.com/mulkymalikuldhrs)
+
 ---
 
 *For Education Purpose — Trilingual Disclaimer (EN/ID/CN)*
