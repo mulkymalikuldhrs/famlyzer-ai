@@ -1,191 +1,178 @@
-# Famlyzer AI
+<!-- BANNER -->
+<img width="100%" src="https://capsule-render.vercel.app/api?type=waving&color=0:0a1628,50:0d2b4a,100:143d5e&fontColor=38bdf8&descColor=f472b6&height=220&section=header&text=Famlyzer%20AI&fontSize=70&desc=Decision%20%26%20Planning%20Intelligence&animation=fadeIn" />
 
-> Autonomous Decision & Planning Intelligence for Life, Family & Finance
+<!-- TYPING SVG -->
+<div align="center">
+  <a href="https://git.io/typing-svg">
+    <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&size=22&duration=3000&pause=1000&color=38BDF8&center=true&vCenter=true&width=600&lines=7+AI+Agents+Working+Together;Intelligent+Decision+Support;Family+%26+Life+Planning;Suggestions+Not+Professional+Advice" alt="Typing SVG" />
+  </a>
+</div>
 
-[![Version](https://img.shields.io/badge/version-6.0.0-emerald)](https://github.com/mulkymalikuldhrs/famlyzer-ai)
-[![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
+<br/>
+
+<!-- BADGES -->
+<div align="center">
+
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Next.js](https://img.shields.io/badge/Next.js-15-black?style=for-the-badge&logo=next.js&logoColor=white)](https://nextjs.org/)
+[![AI Agents](https://img.shields.io/badge/AI_Agents-7-F472B6?style=for-the-badge&logo=brain&logoColor=white)](https://github.com/mulkymalikuldhrs/famlyzer-ai)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](./LICENSE)
+
+</div>
+
+---
 
 ## Overview
 
-Famlyzer AI is a comprehensive SaaS platform that uses 7 autonomous AI agents to provide holistic decision support across life, family, and finance domains. It features a 4-layer memory architecture, knowledge vault with RAG, and multi-level autonomous control.
+**Famlyzer AI** is a decision and planning intelligence platform powered by 7 specialized AI agents working in concert. Each agent focuses on a different domain of life planning — from financial decisions and career moves to family scheduling and health goals. Together, they provide holistic, context-aware recommendations that consider the interconnected nature of real-life decisions.
+
+Built with TypeScript and Next.js, Famlyzer AI transforms complex multi-domain decisions into structured, actionable plans while keeping humans firmly in the driver's seat.
 
 ## Features
 
-- **7 AI Agents** — Planner, Finance, Mediator, Health, Education, Memory, Executive
-- **4-Layer Memory** — Short-term, long-term, decision, and emotional memory layers
-- **Knowledge Vault** — RAG-powered document intelligence (notes, rules, contracts, PDFs)
-- **Autonomous Control** — 4-level autonomous system (Observe → Suggest → Act → Full Auto)
-- **Financial Guardian** — AI veto on budget overruns, real-time monitoring, audit reports
-- **Multi-Workspace** — Personal, Family, and Company workspaces with role-based access
-- **Stripe Payments** — Free, Professional ($19/mo), and Business ($49/mo) tiers
+### 7 Specialized AI Agents
 
-## Tech Stack
+| Agent | Domain | Focus |
+|-------|--------|-------|
+| 🧠 **Strategist** | Decision Analysis | Breaks down complex decisions, evaluates trade-offs |
+| 💰 **Financier** | Financial Planning | Budget analysis, savings goals, investment considerations |
+| 🏥 **HealthGuard** | Health & Wellness | Fitness goals, nutrition planning, health risk awareness |
+| 📚 **Scholar** | Education & Skills | Learning paths, skill development, knowledge gaps |
+| 🏠 **HomeKeeper** | Family & Home | Scheduling, household management, family coordination |
+| 🌍 **Navigator** | Career & Growth | Career moves, professional development, opportunities |
+| 🤝 **Mediator** | Conflict Resolution | Interpersonal decisions, compromise suggestions, priorities |
 
-| Layer | Technology |
-|-------|-----------|
-| Frontend | Next.js 16, React 19, TypeScript, Tailwind CSS 4 |
-| UI | shadcn/ui, Framer Motion, Recharts, Lucide Icons |
-| Backend | Next.js API Routes, Prisma ORM |
-| Database | PostgreSQL via Prisma |
-| Auth | NextAuth.js v4 (JWT + bcrypt) |
-| AI | z-ai-web-dev-sdk with multi-agent system |
-| Payments | Stripe (checkout, webhooks, subscriptions) |
-| State | Zustand + React Query |
+### Multi-Agent Orchestration
+- Agents communicate and share context across domains
+- Cross-domain impact analysis (e.g., how a career move affects family and finances)
+- Consensus-building when agents disagree on recommendations
+- Priority-weighted decision scoring
 
-## Getting Started
+### Decision Workflows
+- Structured decision-making frameworks (pros/cons, weighted scoring, scenario analysis)
+- Timeline-based planning with milestone tracking
+- What-if scenario simulation
+- Decision journal with outcomes tracking
+
+### Planning & Organization
+- Goal setting with SMART criteria
+- Action plan generation with dependencies
+- Calendar integration and scheduling
+- Progress tracking and plan adjustments
+
+### Collaboration
+- Multi-user family accounts
+- Shared decision spaces
+- Role-based agent interaction
+- Exportable plans and reports
+
+## Honest Notes
+
+> **Important context about Famlyzer AI:**
+
+- **Suggestions, Not Professional Advice** — AI recommendations are suggestions to consider, not professional financial, medical, legal, or career advice. Always consult qualified professionals for important decisions.
+- **AI Limitations** — The agents operate within the bounds of their training data and may not account for unique personal circumstances, local regulations, or recent changes in markets/policies.
+- **No Guarantee of Outcomes** — Following AI recommendations does not guarantee positive results. Life decisions involve factors beyond any AI's ability to predict.
+- **Privacy Considerations** — The platform processes personal and potentially sensitive information. Review the privacy policy and understand how your data is used.
+- **Human Judgment is Essential** — Famlyzer AI is a thinking tool, not a decision maker. The best outcomes come from combining AI insights with human wisdom and professional guidance.
+
+## Quick Start
 
 ### Prerequisites
+- Node.js 18+
+- API keys for LLM provider(s)
 
-- Node.js 18+ or Bun
-- PostgreSQL database
-- Stripe account (for payments)
+### Installation
 
-### Setup
+```bash
+# Clone the repository
+git clone https://github.com/mulkymalikuldhrs/famlyzer-ai.git
+cd famlyzer-ai
 
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/mulkymalikuldhrs/famlyzer-ai.git
-   cd famlyzer-ai
-   ```
+# Install dependencies
+npm install
 
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
+# Configure environment
+cp .env.example .env
+```
 
-3. Configure environment:
-   ```bash
-   cp .env.example .env
-   # Edit .env with your values — see Environment Variables below
-   ```
+### Configuration
 
-4. Set up the database:
-   ```bash
-   npx prisma db push
-   ```
+```env
+# LLM Provider
+OPENAI_API_KEY=your_key
+# or
+ANTHROPIC_API_KEY=your_key
 
-5. Start the development server:
-   ```bash
-   npm run dev
-   ```
+# App
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+DATABASE_URL=your_database_url
+```
 
-6. Open [http://localhost:3000](http://localhost:3000)
+### Running
 
-### Environment Variables
+```bash
+# Development
+npm run dev
 
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `DATABASE_URL` | ✅ | PostgreSQL connection string |
-| `NEXTAUTH_SECRET` | ✅ | Session encryption key (`openssl rand -base64 32`) |
-| `NEXTAUTH_URL` | ✅ | App URL (e.g., `http://localhost:3000`) |
-| `STRIPE_SECRET_KEY` | 💰 | Stripe secret key for payments |
-| `STRIPE_PUBLISHABLE_KEY` | 💰 | Stripe publishable key |
-| `STRIPE_WEBHOOK_SECRET` | 💰 | Stripe webhook signing secret |
-| `STRIPE_PRO_MONTHLY_PRICE_ID` | 💰 | Stripe price ID for Pro monthly |
-| `STRIPE_PRO_YEARLY_PRICE_ID` | 💰 | Stripe price ID for Pro yearly |
-| `STRIPE_BUSINESS_MONTHLY_PRICE_ID` | 💰 | Stripe price ID for Business monthly |
-| `STRIPE_BUSINESS_YEARLY_PRICE_ID` | 💰 | Stripe price ID for Business yearly |
-
-> 💰 = Required for payment features. App works without Stripe in free-tier mode.
-
-> ⚠️ **Never commit `.env` to git.** The `.env.example` file is safe to commit.
+# Production
+npm run build && npm start
+```
 
 ## Project Structure
 
 ```
-src/
-├── app/
-│   ├── api/              # API routes (auth, AI, workspaces, subscriptions)
-│   ├── error.tsx          # Global error boundary
-│   ├── loading.tsx        # Global loading state
-│   ├── not-found.tsx      # 404 page
-│   ├── layout.tsx         # Root layout with metadata
-│   └── page.tsx           # Main app entry
-├── components/
-│   ├── error/             # Error boundary component
-│   ├── ui/                # shadcn/ui components
-│   ├── app-layout.tsx     # Main layout with sidebar
-│   ├── dashboard.tsx      # Dashboard with charts & agent status
-│   ├── planner.tsx        # Task pipeline & calendar
-│   ├── finance.tsx        # Accounts, transactions, budgets, goals
-│   ├── vault.tsx          # Knowledge vault with search
-│   ├── ai-assistant.tsx   # Multi-agent chat interface
-│   ├── settings.tsx       # Workspace, autonomous, subscription config
-│   └── onboarding.tsx     # 4-step onboarding wizard
-├── lib/
-│   ├── ai.ts             # ZAI SDK wrapper with timeout & sanitization
-│   ├── auth.ts           # NextAuth configuration
-│   ├── db.ts             # Prisma client singleton
-│   ├── hooks.ts          # React Query hooks for all API routes
-│   ├── rate-limit.ts     # In-memory rate limiter
-│   ├── stripe.ts         # Stripe helpers & pricing config
-│   ├── store.ts          # Zustand global state
-│   ├── validations.ts    # Zod schemas for all endpoints
-│   └── utils.ts          # Utility functions
-├── types/
-│   └── next-auth.d.ts    # NextAuth type augmentations
-└── middleware.ts          # Auth + workspace authorization middleware
+famlyzer-ai/
+├── src/
+│   ├── app/                # Next.js app router
+│   ├── components/
+│   │   ├── agents/         # Agent interaction UI
+│   │   ├── decisions/      # Decision workflow views
+│   │   ├── plans/          # Planning dashboard
+│   │   └── shared/         # Common components
+│   ├── lib/
+│   │   ├── agents/         # 7 AI agent definitions
+│   │   ├── orchestration/  # Multi-agent coordination
+│   │   ├── workflows/      # Decision workflow engine
+│   │   └── planning/       # Planning & scheduling
+│   └── types/              # TypeScript definitions
+├── prompts/                # Agent system prompts
+└── tests/                  # Test suites
 ```
 
-## API Endpoints
+## Contributing
 
-### Auth
-- `POST /api/auth/setup` — Register or login
-- `GET /api/auth/[...nextauth]` — NextAuth handler
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/agent-improvement`)
+3. Add tests for new functionality
+4. Submit a pull request with clear description
 
-### AI
-- `POST /api/ai/chat` — General AI chat
-- `POST /api/ai/analyze` — Comprehensive workspace analysis
-- `POST /api/ai/suggest` — Generate AI suggestions
-- `POST /api/ai/optimize-schedule` — Schedule optimization
-- `POST /api/ai/audit-finances` — Financial audit
-- `POST /api/ai/agent-run` — Run specific agent
+Areas of special interest:
+- New agent specializations
+- Better cross-domain reasoning
+- Localization and accessibility
+- Decision framework implementations
 
-### Workspaces
-- `GET/POST /api/workspaces` — List/create workspaces
-- `GET/PATCH /api/workspaces/[id]` — Get/update workspace
-- `GET/POST /api/workspaces/[id]/members` — List/add members
-- `PATCH/DELETE /api/workspaces/[id]/members/[MemberId]` — Update/remove member
-- `GET/POST /api/workspaces/[id]/tasks` — List/create tasks
-- `PATCH/DELETE /api/workspaces/[id]/tasks/[taskId]` — Update/delete task
-- `GET/POST /api/workspaces/[id]/accounts` — List/create finance accounts
-- `GET/POST /api/workspaces/[id]/transactions` — List/create transactions
-- `GET/POST /api/workspaces/[id]/budget-rules` — List/create budget rules
-- `GET/POST /api/workspaces/[id]/financial-goals` — List/create financial goals
-- `GET/POST /api/workspaces/[id]/vault` — List/create vault documents
-- `PATCH/DELETE /api/workspaces/[id]/vault/[docId]` — Update/delete vault document
-- `GET/POST /api/workspaces/[id]/memories` — List/create memories
-- `DELETE /api/workspaces/[id]/memories/[MemoryId]` — Delete memory
-- `GET /api/workspaces/[id]/suggestions` — List suggestions
-- `PATCH /api/workspaces/[id]/suggestions/[suggestionId]` — Update suggestion status
-- `GET /api/workspaces/[id]/agent-logs` — List agent logs
+## Disclaimer
 
-### Subscriptions
-- `GET/POST /api/subscriptions` — List/create subscriptions
-- `POST /api/subscriptions/stripe-webhook` — Stripe webhook handler
-
-## Security
-
-- **Authentication** — NextAuth JWT sessions with bcrypt password hashing
-- **Authorization** — Workspace membership + role-based access control
-- **Rate Limiting** — Tiered limits per route type (AI: 5-20/min, API: 60/min, Auth: 10/15min)
-- **Input Validation** — Zod schemas on all 30+ API endpoints
-- **Prompt Injection Defense** — AI input sanitization, system role blocked from client
-- **Security Headers** — HSTS, X-Frame-Options DENY, nosniff, Referrer-Policy
-- **CSRF Protection** — NextAuth built-in CSRF tokens
+Famlyzer AI provides AI-generated suggestions for personal decision-making and planning. These suggestions are **not** professional financial, medical, legal, career, or any other form of professional advice. Always consult with qualified professionals before making important life decisions. The authors assume no liability for decisions made based on AI-generated recommendations.
 
 ## License
 
-MIT © Mulky Malikul Dhaher
+This project is licensed under the **MIT License** — see the [LICENSE](./LICENSE) file for details.
 
 ## Author
 
+<div align="center">
+
 **Mulky Malikul Dhaher**
-Email: mulkymalikudhr@mail.com
-GitHub: [@mulkymalikuldhrs](https://github.com/mulkymalikuldhrs)
+
+[![GitHub](https://img.shields.io/badge/GitHub-mulkymalikuldhrs-181717?style=flat-square&logo=github)](https://github.com/mulkymalikuldhrs)
+[![Email](https://img.shields.io/badge/Email-mulkymalikudhr@mail.com-EA4335?style=flat-square&logo=gmail&logoColor=white)](mailto:mulkymalikudhr@mail.com)
+
+</div>
 
 ---
 
-*For Education Purpose — Trilingual Disclaimer (EN/ID/CN)*
-*Untuk Tujuan Pendidikan*
-*仅用于教育目的*
+<!-- FOOTER BANNER -->
+<img width="100%" src="https://capsule-render.vercel.app/api?type=waving&color=0:0a1628,50:0d2b4a,100:143d5e&fontColor=38bdf8&descColor=f472b6&height=120&section=footer&text=&fontSize=0" />
