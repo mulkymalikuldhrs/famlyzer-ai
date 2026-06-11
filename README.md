@@ -144,6 +144,157 @@ famlyzer-ai/
 └── tests/                  # Test suites
 ```
 
+## Visual Architecture
+
+> Interactive Mermaid diagrams — viewable on GitHub. These illustrate the multi-agent system design and data flow at a glance.
+
+### 7-Agent Orchestration
+
+```mermaid
+flowchart TB
+    subgraph User["👤 User Input"]
+        Decision[Decision Request]
+        Plan[Planning Request]
+    end
+
+    subgraph Orchestrator["🎛️ Multi-Agent Orchestrator"]
+        Router[Context Router<br/>Determines relevant agents]
+        Context[Shared Context Bus<br/>Cross-agent memory & state]
+        Consensus[Consensus Engine<br/>Resolves conflicting recommendations]
+    end
+
+    subgraph Agents["🤖 7 Specialized Agents"]
+        Strategist[🧠 Strategist<br/>Decision analysis & trade-offs]
+        Financier[💰 Financier<br/>Budget, savings, investments]
+        HealthGuard[🏥 HealthGuard<br/>Fitness, nutrition, risks]
+        Scholar[📚 Scholar<br/>Learning paths & skills]
+        HomeKeeper[🏠 HomeKeeper<br/>Family & household]
+        Navigator[🌍 Navigator<br/>Career & growth]
+        Mediator[🤝 Mediator<br/>Conflict resolution & priorities]
+    end
+
+    Decision --> Router
+    Plan --> Router
+    Router --> Context
+    Context --> Strategist
+    Context --> Financier
+    Context --> HealthGuard
+    Context --> Scholar
+    Context --> HomeKeeper
+    Context --> Navigator
+    Context --> Mediator
+    Strategist --> Consensus
+    Financier --> Consensus
+    HealthGuard --> Consensus
+    Scholar --> Consensus
+    HomeKeeper --> Consensus
+    Navigator --> Consensus
+    Mediator --> Consensus
+    Consensus -->|Weighted Recommendation| User
+```
+
+### Decision Workflow
+
+```mermaid
+flowchart LR
+    subgraph Input["📥 Input"]
+        A[User describes<br/>decision or goal]
+    end
+
+    subgraph Analysis["🔍 Multi-Agent Analysis"]
+        B1[Strategist<br/>Pros/Cons]
+        B2[Financier<br/>Cost/Benefit]
+        B3[HealthGuard<br/>Wellness Impact]
+        B4[Scholar<br/>Knowledge Gaps]
+        B5[HomeKeeper<br/>Family Impact]
+        B6[Navigator<br/>Career Impact]
+        B7[Mediator<br/>Stakeholder Views]
+    end
+
+    subgraph Synthesis["⚖️ Synthesis"]
+        C1[Cross-Domain<br/>Impact Map]
+        C2[Priority-Weighted<br/>Scoring]
+        C3[Scenario<br/>Simulation]
+    end
+
+    subgraph Output["📤 Output"]
+        D1[Structured<br/>Recommendation]
+        D2[Action Plan<br/>with Milestones]
+        D3[Risk Assessment<br/>& Trade-offs]
+    end
+
+    A --> Analysis
+    B1 --> C1
+    B2 --> C1
+    B3 --> C1
+    B4 --> C2
+    B5 --> C2
+    B6 --> C3
+    B7 --> C3
+    C1 --> D1
+    C2 --> D2
+    C3 --> D3
+```
+
+### Cross-Domain Impact
+
+```mermaid
+flowchart LR
+    Decision["🔑 Example Decision:<br/>Take a New Job"]
+
+    Decision -->|Salary change| Fin["💰 Financial<br/>Income, benefits,<br/>relocation costs"]
+    Decision -->|Schedule shift| Home["🏠 Home & Family<br/>Work-life balance,<br/>childcare, commute"]
+    Decision -->|Stress level| Health["🏥 Health<br/>Stress, sleep,<br/>exercise routine"]
+    Decision -->|Skill growth| Career["🌍 Career<br/>Growth trajectory,<br/>skill development"]
+    Decision -->|Time investment| Learn["📚 Education<br/>Time for courses,<br/>certifications"]
+
+    Fin -->|Affects| Home
+    Home -->|Affects| Health
+    Career -->|Affects| Fin
+    Health -->|Affects| Career
+    Learn -->|Affects| Career
+```
+
+### SaaS Architecture
+
+```mermaid
+flowchart TB
+    subgraph Client["🖥️ Next.js 16 Frontend"]
+        UI[React UI<br/>App Router]
+        AgentUI[Agent Interaction UI]
+        DecUI[Decision Workflows]
+        PlanUI[Planning Dashboard]
+    end
+
+    subgraph API["⚡ API Layer"]
+        NextAPI[Next.js API Routes]
+        Auth[next-auth<br/>Authentication]
+    end
+
+    subgraph Engine["🤖 Agent Engine"]
+        Orch[Multi-Agent<br/>Orchestrator]
+        Agents[7 AI Agents]
+        Memory[Shared Context<br/>& Memory]
+    end
+
+    subgraph Data["💾 Data Layer"]
+        Prisma[Prisma ORM]
+        DB[(Database<br/>PostgreSQL)]
+    end
+
+    subgraph Payments["💳 Billing"]
+        Stripe[Stripe<br/>Subscriptions]
+    end
+
+    Client --> API
+    API --> Engine
+    Engine --> Agents
+    Engine --> Memory
+    API --> Data
+    Prisma --> DB
+    API --> Payments
+```
+
 ## Contributing
 
 1. Fork the repository
