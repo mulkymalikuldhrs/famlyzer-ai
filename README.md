@@ -1,4 +1,3 @@
-<img src="docs/banner.png" width="100%">
 
 <!-- CAPSULE-RENDER HEADER -->
 <img width="100%" src="https://capsule-render.vercel.app/api?type=waving&color=0:0a1628,50:0d2b4a,100:143d5e&fontColor=38bdf8&descColor=f472b6&height=220&section=header&text=Famlyzer%20AI&fontSize=70&desc=Decision%20%26%20Planning%20Intelligence&animation=fadeIn" />
