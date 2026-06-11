@@ -263,6 +263,10 @@ flowchart TB
 
 ```bash
 # Clone the repository
+
+<!-- AUTO-PACKAGE-BADGES:START -->
+
+<!-- AUTO-PACKAGE-BADGES:END -->
 git clone https://github.com/mulkymalikuldhrs/famlyzer-ai.git
 cd famlyzer-ai
 
