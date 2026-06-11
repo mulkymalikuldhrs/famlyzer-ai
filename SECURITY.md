@@ -2,35 +2,30 @@
 
 ## Reporting a Vulnerability
 
-If you discover a security vulnerability in Famlyzer AI, please report it responsibly:
+We take security seriously. If you discover a vulnerability in this project, please report it responsibly.
 
-- **Email**: Create a GitHub Issue with the tag `security` (do not include exploit details publicly)
-- **Response time**: We aim to acknowledge reports within 48 hours
+### How to Report
 
-## Security Measures
+1. **Do not** create a public GitHub issue for the vulnerability
+2. Email us at mulkymalikuldhr@agentmail.to with details
+3. Include steps to reproduce, affected versions, and potential impact
 
-### Authentication & Authorization
-- Passwords hashed with bcrypt (cost factor 12)
-- JWT-based sessions via NextAuth.js
-- Workspace membership + role-based access control enforced in middleware
-- Rate limiting on auth endpoints (10 attempts per 15 minutes)
+### What to Include
 
-### API Security
-- Zod schema validation on all endpoints
-- Rate limiting per route type (AI: 5-20/min, API: 60/min, Auth: 10/15min)
-- System role blocked from client-side AI message injection
-- AI input sanitization against prompt injection patterns
+- Description of the vulnerability
+- Steps to reproduce
+- Affected versions
+- Potential impact
+- Suggested fix (if available)
 
-### Data Protection
-- Environment variables never committed to git (`.env*` in `.gitignore`)
-- Stripe webhook signature verification
-- Security headers (HSTS, X-Frame-Options DENY, nosniff, Referrer-Policy)
-- No ZodError details leaked to clients
+### Response Time
 
-### Known Limitations
-- Rate limiting is in-memory only (not distributed) — for production, use Redis-based rate limiting
-- No rate limiting on workspace-scoped read endpoints within the middleware
+We aim to acknowledge reports within 48 hours and provide a fix within 7 days for critical issues.
 
-## Responsible Disclosure
+### Disclosure Policy
 
-Please do not publicly disclose vulnerabilities before they have been addressed. We appreciate responsible disclosure and will credit researchers who help improve our security.
+- We practice responsible disclosure
+- We will credit researchers who report vulnerabilities (unless they prefer to remain anonymous)
+- We ask that you give us reasonable time to address the issue before public disclosure
+
+Thank you for helping keep this project secure!
